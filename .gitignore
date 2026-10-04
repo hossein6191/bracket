@@ -1,0 +1,10 @@
+node_modules
+__pycache__/
+*.pyc
+.pytest_cache/
+artifacts/
+._*
+.DS_Store
+
+# notes that tooling leaves beside the web app; not part of the project
+web/[AC]*.md

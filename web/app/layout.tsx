@@ -1,0 +1,54 @@
+import type { Metadata, Viewport } from "next";
+
+import "./globals.css";
+import { Providers } from "@/components/providers";
+import { SiteHeader } from "@/components/site-header";
+import { SiteBackground } from "@/components/site-background";
+import { PageGuide } from "@/components/page-guide";
+import { Welcome } from "@/components/welcome";
+import { SiteFooter } from "@/components/site-footer";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000");
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: `${SITE_NAME}: ${SITE_TAGLINE}`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description:
+    "A maker publishes a rate card once. A stranger types a brief and pays the dearest tier; in one transaction the contract says which tier covers the brief, keeps that tier's price in escrow and sends the rest straight back.",
+  applicationName: SITE_NAME,
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0B0E11",
+  width: "device-width",
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className="dark h-full antialiased" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet" />
+      </head>
+      <body className="flex min-h-full flex-col">
+        <SiteBackground />
+        <Providers>
+          <SiteHeader />
+          <Welcome />
+          <main className="flex-1">
+            <PageGuide />
+            {children}
+          </main>
+          <SiteFooter />
+        </Providers>
+      </body>
+    </html>
+  );
+}
