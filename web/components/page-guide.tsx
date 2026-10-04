@@ -3,11 +3,15 @@
 // What each page is for, and what a visitor can do on it, step by step. A horizontal stepper at
 // the top of every page except the landing page: numbered steps joined by a line, each with its
 // short title, and the chosen step's detail below. Open the first time, remembered once folded.
+// On the pages where the visitor does something, the page reports how far they have got
+// (components/guide-progress.ts) and the stepper moves on by itself: earlier steps are ticked and
+// the current one opens. Pressing a step still shows it, until the visitor's next move.
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 
+import { useGuideStep } from "@/components/guide-progress";
 import { useLocal } from "@/components/use-local";
 import { readItem, writeItem, notify } from "@/lib/browser-store";
 import { GUIDES, type Guide } from "@/lib/guides";
@@ -47,7 +51,12 @@ export function PageGuide() {
 }
 
 function Stepper({ guide: g }: { guide: Guide }) {
-  const [active, setActive] = React.useState(0);
+  const reached = useGuideStep(g.key);
+  // A pressed step stays open only while the page reports the same progress it did when pressed.
+  const [picked, setPicked] = React.useState<{ at: number | null; step: number } | null>(null);
+  const last = g.steps.length - 1;
+  const following = reached === null ? 0 : Math.min(reached, last);
+  const active = picked && picked.at === reached ? picked.step : following;
   const [title, body] = g.steps[active] ?? g.steps[0];
   return (
     <div className="space-y-4 border-t px-4 pt-4 pb-4">
@@ -56,7 +65,7 @@ function Stepper({ guide: g }: { guide: Guide }) {
       <div className="scrollbar-none -mx-4 overflow-x-auto px-4">
         <ol className="flex" aria-label="Steps">
           {g.steps.map(([stepTitle], i) => {
-            const done = i < active;
+            const done = reached === null ? i < active : i < reached;
             const current = i === active;
             return (
               <li key={stepTitle} className="relative w-28 shrink-0 sm:w-auto sm:min-w-0 sm:flex-1">
@@ -68,7 +77,7 @@ function Stepper({ guide: g }: { guide: Guide }) {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => setActive(i)}
+                  onClick={() => setPicked({ at: reached, step: i })}
                   aria-current={current ? "step" : undefined}
                   className="group flex w-full cursor-pointer flex-col items-center gap-2 px-1 text-center focus-visible:outline-none"
                 >
@@ -82,7 +91,7 @@ function Stepper({ guide: g }: { guide: Guide }) {
                           : "border-white/20 bg-card text-muted-foreground group-hover:border-brand/60 group-hover:text-foreground",
                     )}
                   >
-                    {String(i + 1)}
+                    {done && !current ? <Check className="size-3.5" aria-label="done" /> : String(i + 1)}
                   </span>
                   <span className={cn("text-xs leading-snug text-balance", current ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
                     {stepTitle}
@@ -96,6 +105,7 @@ function Stepper({ guide: g }: { guide: Guide }) {
       <div className="rounded-lg border bg-background/60 p-3" aria-live="polite">
         <p className="font-mono text-[11px] text-brand-secondary">
           {String(active + 1)} / {String(g.steps.length)}
+          {reached !== null ? (reached > last ? " · all done" : active === following ? " · you are here" : "") : ""}
         </p>
         <p className="mt-1 text-sm font-medium">{title}</p>
         <p className="mt-0.5 text-sm text-muted-foreground text-pretty">{body}</p>

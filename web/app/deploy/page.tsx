@@ -19,6 +19,7 @@ import { TxRail } from "@/components/tx-rail";
 import { cleanWalletError } from "@/components/use-tx";
 import { useLocal } from "@/components/use-local";
 import { useMe } from "@/components/use-me";
+import { useGuideProgress } from "@/components/guide-progress";
 import { WalletGate } from "@/components/wallet-gate";
 import {
   CONTRACT_FILE,
@@ -86,6 +87,7 @@ export default function DeployPage() {
   const lastRaw = useLocal(lastDeployRaw, "");
   const last = React.useMemo(() => parseLastDeploy(lastRaw), [lastRaw]);
   const site = siteRegister();
+  useGuideProgress("deploy", override ? 2 : busy || hash ? 1 : 0);
 
   React.useEffect(() => {
     let alive = true;

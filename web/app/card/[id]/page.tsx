@@ -23,6 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { useTx } from "@/components/use-tx";
+import { useGuideProgress } from "@/components/guide-progress";
 import { WalletGate } from "@/components/wallet-gate";
 import {
   LIMITS,
@@ -300,6 +301,11 @@ function QuoteBox({ card: c, onDone }: { card: Card; onDone: () => void }) {
   const outcome = tx.final ? quoteOutcome(tx.final) : null;
   const suggestions = React.useMemo(() => briefsFor(c.tiers.map((t) => t.text)), [c.tiers]);
   const blocked = !c.open || c.frozen || isMaker;
+  // The stepper above follows the visitor: tiers, brief, the money, the signature, the result.
+  useGuideProgress(
+    "card",
+    blocked ? 0 : running ? 3 : outcome?.kind === "result" ? 4 : !brief.trim() ? 0 : problem ? 1 : 2,
+  );
 
   return (
     <section className={cn(box, "min-w-0 space-y-4")} aria-labelledby="brief-title">

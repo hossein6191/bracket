@@ -20,6 +20,7 @@ import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { succeeded, useTx } from "@/components/use-tx";
+import { useGuideProgress } from "@/components/guide-progress";
 import { WalletGate } from "@/components/wallet-gate";
 import { calls, cardPath, invalidateReads, parseOrderId, readCard, readOrder, type Call, type Card, type Order, txUrl } from "@/lib/chain";
 import { gen, orderName, when } from "@/lib/format";
@@ -189,6 +190,8 @@ function NextMove({ order: o, viewer, onDone }: { order: Order; viewer: ReturnTy
   const done = succeeded(tx.final);
   const label = tx.call?.fn === "accept" ? "Accepting" : tx.call?.fn === "decline" ? "Declining" : "Cancelling";
   const send = (call: Call) => void tx.start(call);
+  // The stepper above: a settled order has nothing left to do; a booked one waits on its buyer or maker.
+  useGuideProgress("order", done || o.status !== "booked" ? 4 : viewer === "buyer" ? 2 : viewer === "maker" ? 3 : 0);
 
   return (
     <section className={cn(box, "space-y-3")} aria-labelledby="next-title">

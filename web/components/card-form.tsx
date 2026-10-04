@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useMe } from "@/components/use-me";
 import { useTx } from "@/components/use-tx";
+import { useGuideProgress } from "@/components/guide-progress";
 import { WalletGate } from "@/components/wallet-gate";
 import { calls, isMock, publishedCard, revisedCard, textProblem, tidy, type Card, type Limits, type TierInput } from "@/lib/chain";
 import { EXAMPLE_CARDS, type ExampleCard } from "@/lib/examples";
@@ -103,6 +104,10 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
   };
 
   const made = revising ? revisedCard(tx.final) : (publishedCard(tx.final)?.card ?? "");
+  // The stepper above follows the form: example, tiers, how they relate, bond, publish, look after it.
+  const typed = !!draft.title || draft.tiers.some((t) => t.text || t.price);
+  const tiersReady = !titleProblem && tierProblems.every((p) => !p);
+  useGuideProgress("publish", made ? 5 : running || problems.length === 0 ? 4 : tiersReady ? 3 : typed ? 1 : 0);
 
   return (
     <div className="space-y-5">

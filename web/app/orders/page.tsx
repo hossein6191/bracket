@@ -14,6 +14,7 @@ import { SectionHelp } from "@/components/section-help";
 import { Button } from "@/components/ui/button";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { useMe } from "@/components/use-me";
+import { useGuideProgress } from "@/components/guide-progress";
 import { useRead } from "@/components/use-read";
 import { WalletButton } from "@/components/wallet";
 import {
@@ -72,6 +73,7 @@ async function readMine(address: string): Promise<ReadResult<Mine>> {
 export default function OrdersPage() {
   const me = useMe();
   const mine = useRead(() => readMine(me.address), [me.address], { enabled: !!me.address });
+  useGuideProgress("orders", me.address ? 1 : 0);
 
   return (
     <div className="container-site space-y-6 py-8">
