@@ -1,19 +1,26 @@
 "use client";
 
-// The box a first-time visitor sees: what the site is, what it settles, the words it uses, and
-// where to start. It opens once, and the "How it works" button in the header opens it again.
+// What a first-time visitor sees: a small card that slides up in the bottom-left corner with what
+// the site is. "Show me" opens the whole explanation in a panel from the right edge: what it
+// settles, the words it uses, and where to start. "Dismiss" folds it away, and the small
+// "How it works" link in the header brings the card back.
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { HelpCircle } from "lucide-react";
 
+import { StepTrack } from "@/components/section-help";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { InteractiveHoverButton } from "@/components/ui/interactive-hover-button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useLocal } from "@/components/use-local";
 import { readItem, writeItem, notify } from "@/lib/browser-store";
+import { cn } from "@/lib/utils";
 
 const KEY = "bracket:welcomed";
+
+const TITLE = "Bracket, in one minute";
+const LEAD =
+  "A fixed price before any work starts. The maker writes a rate card once; after that the contract, not the maker, tells each stranger which tier their request falls under. What is on trial is the rate card, never your request.";
 
 const STEPS: [string, string][] = [
   ["A maker publishes a rate card, once", "A translator, an illustrator, a tutor: two to four numbered tiers in their own words, each with a price, and a bond behind the wording."],
@@ -33,17 +40,26 @@ const WORDS: [string, string][] = [
   ["Frozen", "a card caught covering one brief twice; it prices nothing until revised"],
 ];
 
-/** Open the welcome box again (used by the header button). */
+/** Bring the welcome card back (used by the header link). */
 export function openWelcome(): void {
   writeItem(KEY, null);
   notify();
 }
 
-export function WelcomeButton() {
+/** The header's small "How it works" link. Under 640 px only its icon shows. */
+export function WelcomeButton({ className }: { className?: string }) {
   return (
-    <Button type="button" variant="outline" size="sm" onClick={openWelcome}>
-      <HelpCircle /> How it works
-    </Button>
+    <button
+      type="button"
+      onClick={openWelcome}
+      className={cn(
+        "inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-1.5 font-mono text-[11px] text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        className,
+      )}
+    >
+      <HelpCircle className="size-3.5" aria-hidden />
+      <span className="sr-only sm:not-sr-only">How it works</span>
+    </button>
   );
 }
 
@@ -51,58 +67,77 @@ export function Welcome() {
   const router = useRouter();
   // The server and the first paint assume it was seen, so nothing flashes for a returning visitor.
   const seen = useLocal(() => readItem(KEY) === "1", true);
+  const [full, setFull] = React.useState(false);
   const close = () => {
     writeItem(KEY, "1");
     notify();
   };
   return (
-    <Dialog open={!seen} onOpenChange={(open) => (open ? undefined : close())}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Bracket, in one minute</DialogTitle>
-          <DialogDescription className="text-sm text-foreground/85">
-            A fixed price before any work starts. The maker writes a rate card once; after that the contract, not the maker,
-            tells each stranger which tier their request falls under. What is on trial is the rate card, never your request.
-          </DialogDescription>
-        </DialogHeader>
-        <ol className="grid gap-2">
-          {STEPS.map(([title, body], i) => (
-            <li key={title} className="flex gap-3 rounded-xl border border-white/10 bg-black/25 p-3">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-linear-to-b from-brand to-brand-secondary text-xs font-semibold text-white">
-                {i + 1}
-              </span>
-              <span className="min-w-0 text-xs">
-                <span className="block text-sm font-medium text-foreground">{title}</span>
-                <span className="block text-muted-foreground text-pretty">{body}</span>
-              </span>
-            </li>
-          ))}
-        </ol>
-        <div className="rounded-xl border border-white/10 bg-black/25 p-3">
-          <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">The words this site uses</p>
-          <dl className="grid gap-x-4 gap-y-1 text-xs sm:grid-cols-2">
-            {WORDS.map(([word, meaning]) => (
-              <div key={word} className="flex gap-2">
-                <dt className="shrink-0 font-mono text-foreground">{word}</dt>
-                <dd className="text-muted-foreground">{meaning}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <InteractiveHoverButton
-            onClick={() => {
-              close();
-              router.push("/cards");
-            }}
-          >
-            Pick a card and ask for a price
-          </InteractiveHoverButton>
-          <Button type="button" variant="ghost" onClick={close}>
-            Look around first
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <>
+      {seen ? null : (
+        <aside
+          aria-labelledby="welcome-title"
+          className="surface fixed right-4 bottom-4 left-4 z-40 space-y-3 p-4 shadow-2xl shadow-black/60 duration-500 animate-in fade-in-0 slide-in-from-bottom-8 sm:right-auto sm:w-[23rem]"
+        >
+          <div className="flex items-center gap-2">
+            <span aria-hidden className="size-1.5 rounded-full bg-brand-secondary" />
+            <h2 id="welcome-title" className="text-sm font-semibold">
+              {TITLE}
+            </h2>
+          </div>
+          <p className="text-xs leading-relaxed text-muted-foreground text-pretty">{LEAD}</p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                close();
+                setFull(true);
+              }}
+            >
+              Show me
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={close}>
+              Dismiss
+            </Button>
+          </div>
+        </aside>
+      )}
+      <Sheet open={full} onOpenChange={setFull}>
+        <SheetContent className="max-w-lg">
+          <SheetHeader>
+            <p className="eyebrow">How it works</p>
+            <SheetTitle className="text-xl">{TITLE}</SheetTitle>
+            <SheetDescription className="text-foreground/85">{LEAD}</SheetDescription>
+          </SheetHeader>
+          <StepTrack steps={STEPS} className="mt-6" />
+          <div className="mt-6 rounded-lg border bg-background/60 p-3">
+            <p className="eyebrow mb-2">The words this site uses</p>
+            <dl className="grid gap-y-1.5 text-xs">
+              {WORDS.map(([word, meaning]) => (
+                <div key={word} className="grid grid-cols-[6.5rem_1fr] gap-2">
+                  <dt className="font-mono text-brand">{word}</dt>
+                  <dd className="text-muted-foreground">{meaning}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div className="mt-6 flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              onClick={() => {
+                setFull(false);
+                router.push("/cards");
+              }}
+            >
+              Pick a card and ask for a price
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setFull(false)}>
+              Look around first
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

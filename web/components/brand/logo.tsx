@@ -4,7 +4,7 @@
 // accent and stays legible in a single colour at favicon size.
 import * as React from "react";
 
-export const BRAND_FROM = "#2F6BFF";
+export const BRAND_FROM = "#4A9EFF";
 export const BRAND_TO = "#22D3EE";
 
 export function LogoMark({ size = 28, className }: { size?: number; className?: string }) {

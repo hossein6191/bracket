@@ -8,7 +8,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 // The card shared links show: the mark, the name, and the one sentence the site is about, on the
-// dark plate with the site's blue-to-cyan accent behind it.
+// graphite plate with the site's blue-to-cyan accent behind it.
 export default function OpengraphImage() {
   return new ImageResponse(
     (
@@ -20,9 +20,9 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 72,
-          backgroundColor: "#0B0E11",
+          backgroundColor: "#161618",
           backgroundImage:
-            "radial-gradient(circle at 88% 8%, rgba(34,211,238,0.4), transparent 46%), radial-gradient(circle at 8% 100%, rgba(17,15,255,0.55), transparent 52%), radial-gradient(circle at 60% 120%, rgba(47,107,255,0.4), transparent 50%)",
+            "radial-gradient(circle at 88% 8%, rgba(34,211,238,0.32), transparent 46%), radial-gradient(circle at 8% 100%, rgba(74,158,255,0.38), transparent 52%)",
           color: "#F2F4F6",
         }}
       >

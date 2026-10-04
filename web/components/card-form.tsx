@@ -13,6 +13,7 @@ import { SectionHelp } from "@/components/section-help";
 import { Suggest } from "@/components/suggest";
 import { TxBlock } from "@/components/tx-block";
 import { Button } from "@/components/ui/button";
+import { PearlButton } from "@/components/ui/pearl-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useMe } from "@/components/use-me";
@@ -143,8 +144,8 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
           <div key={i} className="space-y-2 rounded-xl border bg-background/50 p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-2 text-sm font-medium">
-                <span className="flex size-6 items-center justify-center rounded-full bg-linear-to-b from-brand to-brand-secondary text-xs font-semibold text-white">
-                  {i + 1}
+                <span className="flex size-6 items-center justify-center rounded-md border border-brand/35 bg-brand/[0.08] font-mono text-[11px] text-brand">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 Tier {i + 1}
               </span>
@@ -210,7 +211,7 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
             key={title}
             className={cn(
               "flex cursor-pointer gap-3 rounded-xl border p-3 text-sm transition-colors",
-              draft.ladder === value ? "border-primary/50 bg-primary/10" : "bg-background/50 hover:border-white/20",
+              draft.ladder === value ? "border-brand/50 bg-brand/10" : "bg-background/50 hover:border-white/20",
             )}
           >
             <input type="radio" name="ladder" className="mt-1 accent-(--brand)" checked={draft.ladder === value} onChange={() => set({ ladder: value })} />
@@ -270,15 +271,22 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
 
       <WalletGate action={revising ? "publish the revision" : "publish a card"}>
         <div className="space-y-2">
-          <Button type="button" variant="cool" size="lg" disabled={running || problems.length > 0 || !me.ready || short || !!made} onClick={send}>
-            {tx.sending
-              ? "Waiting for your wallet"
-              : running
-                ? "The validators are checking the call"
-                : revising
-                  ? `Publish the revision of ${revising.id}`
-                  : `Publish the card · send ${bond !== null ? gen(bond) : "the bond"}`}
-          </Button>
+          <PearlButton
+            type="button"
+            compact
+            className="max-w-full"
+            disabled={running || problems.length > 0 || !me.ready || short || !!made}
+            onClick={send}
+            label={
+              tx.sending
+                ? "Waiting for your wallet"
+                : running
+                  ? "The validators are checking the call"
+                  : revising
+                    ? `Publish the revision of ${revising.id}`
+                    : `Publish the card · send ${bond !== null ? gen(bond) : "the bond"}`
+            }
+          />
           {problems.length > 0 && (draft.title || draft.tiers.some((t) => t.text || t.price)) ? (
             <p className="text-xs text-gold">Before this can be sent: {problems[0]}</p>
           ) : null}

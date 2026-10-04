@@ -39,7 +39,7 @@ import { short } from "@/lib/format";
 import { sha256Hex } from "@/lib/hash";
 import { isAddress, lastDeployRaw, parseLastDeploy, registerOverride, rememberDeploy, setRegisterOverride, siteRegister } from "@/lib/register";
 
-const card = "space-y-4 rounded-2xl border bg-card p-5 sm:p-6";
+const card = "space-y-4 surface p-5 sm:p-6";
 
 type Probe = "register" | "no-answer" | "rate-limited";
 
@@ -279,7 +279,7 @@ export default function DeployPage() {
       <section className={card}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold">Contract source <SectionHelp k="deploy-source" /></h2>
-          <a className="text-sm text-primary underline-offset-4 hover:underline" href={CONTRACT_SOURCE_PATH} target="_blank" rel="noreferrer">
+          <a className="text-sm text-brand underline-offset-4 hover:underline" href={CONTRACT_SOURCE_PATH} target="_blank" rel="noreferrer">
             {CONTRACT_FILE}
           </a>
         </div>
@@ -295,7 +295,7 @@ export default function DeployPage() {
               <>
                 <dt className="text-muted-foreground">Repository</dt>
                 <dd>
-                  <a className="text-primary underline-offset-4 hover:underline" href={REPO_URL} target="_blank" rel="noreferrer">
+                  <a className="text-brand underline-offset-4 hover:underline" href={REPO_URL} target="_blank" rel="noreferrer">
                     {REPO_URL.replace("https://", "")}
                   </a>
                 </dd>
@@ -328,7 +328,7 @@ export default function DeployPage() {
         {hash ? <TxRail hash={hash} label="Deploying the contract" onDone={onDone} /> : null}
         {waitingAddress ? <p className="text-sm text-muted-foreground">Reading the new address from the network. A few seconds.</p> : null}
         {last ? (
-          <div className="space-y-3 rounded-xl border border-primary/40 bg-primary/5 p-4">
+          <div className="space-y-3 rounded-xl border border-brand/40 bg-brand/5 p-4">
             <p className="text-sm font-medium">{last.hash === hash ? "Deployed." : "Your last deployment from this browser."} The contract lives at</p>
             <div className="flex flex-wrap items-center gap-2">
               <code className="rounded bg-background px-2 py-1 font-mono text-xs break-all">{last.address}</code>
@@ -347,7 +347,7 @@ export default function DeployPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               Deployed {new Date(last.at).toLocaleString("en-GB")} · transaction{" "}
-              <a className="font-mono text-primary underline-offset-4 hover:underline" href={txUrl(last.hash)} target="_blank" rel="noreferrer">
+              <a className="font-mono text-brand underline-offset-4 hover:underline" href={txUrl(last.hash)} target="_blank" rel="noreferrer">
                 {short(last.hash, 10, 6)}
               </a>
             </p>

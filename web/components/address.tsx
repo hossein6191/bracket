@@ -73,7 +73,7 @@ export function TxLink({ hash, className, label }: { hash: string; className?: s
       href={txUrl(hash)}
       target="_blank"
       rel="noopener noreferrer"
-      className={cn("inline-flex items-center gap-1 font-mono text-xs text-primary underline-offset-4 hover:underline", className)}
+      className={cn("inline-flex items-center gap-1 font-mono text-xs text-brand underline-offset-4 hover:underline", className)}
       title={hash}
     >
       {label ?? short(hash, 10, 6)}

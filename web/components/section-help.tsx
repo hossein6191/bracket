@@ -1,12 +1,35 @@
 "use client";
 
-// A small "steps" button beside the title of each part of a page. Pressing it opens what that
-// part is for and what you can do in it, one numbered step at a time.
+// A small round "?" beside the title of each part of a page. Pressing it slides in a panel from
+// the right edge with what that part is for and what you can do in it, one numbered step at a time.
 
 import * as React from "react";
-import { ListOrdered } from "lucide-react";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+
+/** Numbered steps joined by a vertical line; each step is a sentence, or a title with a sentence under it. */
+export function StepTrack({ steps, className }: { steps: (string | [string, string])[]; className?: string }) {
+  return (
+    <ol className={cn("relative", className)}>
+      {steps.map((step, i) => {
+        const [title, body] = typeof step === "string" ? ["", step] : step;
+        return (
+          <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
+            {i < steps.length - 1 ? <span aria-hidden className="absolute top-7 bottom-0 left-3.5 w-px bg-border" /> : null}
+            <span className="relative flex size-7 shrink-0 items-center justify-center rounded-md border border-brand/40 bg-background font-mono text-[11px] text-brand">
+              {String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="min-w-0 pt-1 text-sm">
+              {title ? <span className="block font-medium text-foreground">{title}</span> : null}
+              <span className={cn("block text-pretty", title ? "text-muted-foreground" : "text-foreground/90")}>{body}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 type Help = { title: string; what: string; steps: string[] };
 
@@ -246,28 +269,21 @@ export function SectionHelp({ k }: { k: string }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={`Steps for: ${h.title}`}
-        className="ml-2 inline-flex h-6 cursor-pointer items-center gap-1 rounded-full border border-brand/40 bg-brand/10 px-2 align-middle text-[11px] font-medium text-foreground/90 transition-[transform,background-color] duration-150 hover:bg-brand/25 active:scale-[0.97]"
+        title="Steps"
+        className="ml-2 inline-flex size-5 cursor-pointer items-center justify-center rounded-full border border-white/25 align-middle font-mono text-[11px] leading-none font-medium text-muted-foreground transition-colors duration-150 hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
-        <ListOrdered className="size-3" /> Steps
+        ?
       </button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{h.title}</DialogTitle>
-            <DialogDescription className="text-sm text-foreground/85">{h.what}</DialogDescription>
-          </DialogHeader>
-          <ol className="grid gap-2">
-            {h.steps.map((step, i) => (
-              <li key={i} className="flex gap-3 rounded-xl border border-white/10 bg-black/25 p-3">
-                <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-linear-to-b from-brand to-brand-secondary text-xs font-semibold text-white">
-                  {i + 1}
-                </span>
-                <span className="min-w-0 text-sm text-foreground/90 text-pretty">{step}</span>
-              </li>
-            ))}
-          </ol>
-        </DialogContent>
-      </Dialog>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <p className="eyebrow">Steps</p>
+            <SheetTitle>{h.title}</SheetTitle>
+            <SheetDescription className="text-foreground/85">{h.what}</SheetDescription>
+          </SheetHeader>
+          <StepTrack steps={h.steps} className="mt-6" />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

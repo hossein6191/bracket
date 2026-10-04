@@ -1,5 +1,5 @@
-// What each section of the site is for and what a visitor can do there, step by step. One source
-// for the box at the top of every page and for the full-screen menu.
+// What each section of the site is for and what a visitor can do there, step by step: the
+// stepper at the top of every page except the landing page.
 
 export type Guide = { key: string; title: string; what: string; steps: [string, string][]; note?: string };
 
@@ -113,18 +113,3 @@ export const GUIDES: { href: string; match: (path: string) => boolean; guide: Gu
     },
   },
 ];
-
-/** The landing page's own entry, for the menu. */
-export const HOME_GUIDE: { href: string; guide: Guide } = {
-  href: "/",
-  guide: {
-    key: "home",
-    title: "Start here",
-    what: "What Bracket is and what it settles, in five steps, with one quote shown from start to finish.",
-    steps: [
-      ["Read the five steps", "From a maker publishing a card to the price leaving escrow."],
-      ["Watch one quote", "The terminal plays a brief priced exactly, then a brief the card covers twice."],
-      ["Open the cards", "The button takes you to the cards, where you can ask for a price yourself."],
-    ],
-  },
-};

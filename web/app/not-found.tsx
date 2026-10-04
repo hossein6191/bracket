@@ -8,13 +8,13 @@ export default function NotFound() {
         Nothing is wrong with the contract or with your wallet. The cards page lists every rate card, and the ledger every order.
       </p>
       <div className="flex flex-wrap justify-center gap-4 text-sm">
-        <Link href="/" className="text-primary underline-offset-4 hover:underline">
+        <Link href="/" className="text-brand underline-offset-4 hover:underline">
           Start page
         </Link>
-        <Link href="/cards" className="text-primary underline-offset-4 hover:underline">
+        <Link href="/cards" className="text-brand underline-offset-4 hover:underline">
           Cards
         </Link>
-        <Link href="/ledger" className="text-primary underline-offset-4 hover:underline">
+        <Link href="/ledger" className="text-brand underline-offset-4 hover:underline">
           Ledger
         </Link>
       </div>

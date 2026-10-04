@@ -12,6 +12,7 @@ import { OrderRow } from "@/components/bracket";
 import { BlockSkeleton, ReadBlock, readEach } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
 import { Button } from "@/components/ui/button";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { WalletButton } from "@/components/wallet";
@@ -31,7 +32,7 @@ import {
 } from "@/lib/chain";
 import { cn } from "@/lib/utils";
 
-const box = "rounded-2xl border bg-card p-5 sm:p-6";
+const box = "surface p-5 sm:p-6";
 /** The most orders shown per list, and the most read one by one when the ledger page does not carry them. */
 const SHOWN = 12;
 const ONE_BY_ONE = 6;
@@ -107,11 +108,13 @@ export default function OrdersPage() {
           </p>
           <div className="flex flex-wrap items-center gap-3">
             {isMock ? null : <WalletButton />}
-            <Button asChild variant="outline" size="sm">
+            <LiquidButton asChild size="sm" className="text-foreground">
               <Link href="/ledger">
-                Open the ledger <ArrowRight />
+                <span className="relative z-10 inline-flex items-center gap-1.5">
+                  Open the ledger <ArrowRight />
+                </span>
               </Link>
-            </Button>
+            </LiquidButton>
           </div>
         </div>
       ) : (
@@ -136,11 +139,13 @@ export default function OrdersPage() {
                       This wallet has not asked any card for a price yet. Pick a card, type what you need, and the answer takes one
                       to two minutes.
                     </p>
-                    <Button asChild variant="cool" size="sm">
+                    <LiquidButton asChild size="sm" className="text-foreground">
                       <Link href="/cards">
-                        Open the cards <ArrowRight />
+                        <span className="relative z-10 inline-flex items-center gap-1.5">
+                          Open the cards <ArrowRight />
+                        </span>
                       </Link>
-                    </Button>
+                    </LiquidButton>
                   </div>
                 ) : (
                   <>
@@ -168,11 +173,13 @@ export default function OrdersPage() {
                       This wallet has no card among the 24 newest. Publish one and the orders strangers book on it will wait for you
                       here.
                     </p>
-                    <Button asChild variant="outline" size="sm">
+                    <LiquidButton asChild size="sm" className="text-foreground">
                       <Link href="/publish">
-                        Publish a card <ArrowRight />
+                        <span className="relative z-10 inline-flex items-center gap-1.5">
+                          Publish a card <ArrowRight />
+                        </span>
                       </Link>
-                    </Button>
+                    </LiquidButton>
                   </div>
                 ) : (
                   <>
@@ -181,7 +188,7 @@ export default function OrdersPage() {
                       {d.cards.map((c, i) => (
                         <React.Fragment key={c.id}>
                           {i > 0 ? ", " : ""}
-                          <Link href={cardPath(c.id)} className="font-mono text-primary underline-offset-4 hover:underline">
+                          <Link href={cardPath(c.id)} className="font-mono text-brand underline-offset-4 hover:underline">
                             {c.id}
                           </Link>
                         </React.Fragment>

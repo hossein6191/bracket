@@ -15,6 +15,7 @@ import { BlockSkeleton, ReadBlock } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
 import { TxBlock } from "@/components/tx-block";
 import { Button } from "@/components/ui/button";
+import { RetroButton } from "@/components/ui/button-retro";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { succeeded, useTx } from "@/components/use-tx";
@@ -23,7 +24,7 @@ import { LIMITS, calls, cardPath, invalidateReads, parseCardId, readCard, readCa
 import { gen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const box = "rounded-2xl border bg-card p-5 sm:p-6";
+const box = "surface p-5 sm:p-6";
 
 export default function PublishPage({ searchParams }: { searchParams: Promise<{ revise?: string | string[] }> }) {
   const me = useMe();
@@ -73,7 +74,7 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
         ) : (
           <>
             {revising ? (
-              <div className="flex flex-col gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-2 rounded-xl border border-brand/30 bg-brand/5 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-foreground/90">
                   You are revising <span className="font-mono font-semibold">{revising.id}</span>
                   {revising.frozen ? ", which is frozen. Reword the tiers that were caught overlapping." : "."} Publishing closes it and
@@ -135,7 +136,7 @@ function MyCards({ cards, onRevise, onDone }: { cards: Card[]; onRevise: (id: st
         {cards.map((c) => (
           <li key={c.id} className="space-y-3 rounded-xl border bg-background/50 p-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Link href={cardPath(c.id)} className="font-mono text-sm font-semibold text-primary underline-offset-4 hover:underline">
+              <Link href={cardPath(c.id)} className="font-mono text-sm font-semibold text-brand underline-offset-4 hover:underline">
                 {c.id}
               </Link>
               <span className="min-w-0 text-sm font-medium [overflow-wrap:anywhere]">{c.title}</span>
@@ -166,19 +167,18 @@ function MyCards({ cards, onRevise, onDone }: { cards: Card[]; onRevise: (id: st
             ) : null}
             {c.open ? (
               <WalletGate action="revise or close this card">
-                <div className="flex flex-wrap gap-2">
-                  <Button type="button" variant={c.frozen ? "cool" : "outline"} size="sm" disabled={running} onClick={() => onRevise(c.id)}>
-                    <PenLine /> Revise
-                  </Button>
-                  <Button
+                <div className="flex flex-wrap items-center gap-3">
+                  <RetroButton type="button" variant={c.frozen ? "cyan" : "gray"} disabled={running} onClick={() => onRevise(c.id)}>
+                    <PenLine className="mr-1 inline size-3.5 align-[-2px]" /> Revise
+                  </RetroButton>
+                  <RetroButton
                     type="button"
-                    variant="outline"
-                    size="sm"
+                    variant="darkGray"
                     disabled={running || !me.ready || c.booked > 0}
                     onClick={() => void tx.start(calls.closeCard(c.id))}
                   >
-                    <Undo2 /> {running && closing === c.id ? "Closing" : `Close and take ${gen(c.bondAtto)} back`}
-                  </Button>
+                    <Undo2 className="mr-1 inline size-3.5 align-[-2px]" /> {running && closing === c.id ? "Closing" : `Close and take ${gen(c.bondAtto)} back`}
+                  </RetroButton>
                   <Button asChild variant="ghost" size="sm">
                     <Link href={cardPath(c.id)}>
                       Open <ArrowRight />

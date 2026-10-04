@@ -11,7 +11,8 @@ import { ArrowRight } from "lucide-react";
 import { OrderRow } from "@/components/bracket";
 import { BlockSkeleton, ReadBlock } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
-import { Button } from "@/components/ui/button";
+import { RetroButton } from "@/components/ui/button-retro";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { useRead } from "@/components/use-read";
 import { Address } from "@/components/address";
 import { cardPath, readLedger, readRefusals, readRule, readStats, type Outcome } from "@/lib/chain";
@@ -19,7 +20,7 @@ import { gen, when } from "@/lib/format";
 import { outcomeLabel, sentence, statIsMoney, statWords } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
-const box = "rounded-2xl border bg-card p-5 sm:p-6";
+const box = "surface p-5 sm:p-6";
 
 type Filter = Outcome | "all";
 const FILTERS: Filter[] = ["all", "exact", "outside", "ambiguous", "unclear"];
@@ -53,11 +54,11 @@ export default function LedgerPage() {
           empty={<p className="text-sm text-muted-foreground">The contract published no counters.</p>}
         >
           {(d) => (
-            <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-5">
+            <dl className="cells grid-cols-2 text-xs sm:grid-cols-3 lg:grid-cols-5">
               {d.entries.map((e) => (
-                <div key={e.key} className="rounded-lg border bg-background/50 p-3">
+                <div key={e.key} className="p-3">
                   <dt className="text-muted-foreground">{statWords(e.key)}</dt>
-                  <dd className="font-mono text-base font-semibold">{statIsMoney(e.key, e.value) ? gen(e.value) : e.value}</dd>
+                  <dd className="mt-0.5 font-mono text-base font-semibold tabular-nums">{statIsMoney(e.key, e.value) ? gen(e.value) : e.value}</dd>
                 </div>
               ))}
             </dl>
@@ -66,24 +67,15 @@ export default function LedgerPage() {
       </section>
 
       <section className={cn(box, "space-y-4")} aria-labelledby="orders-title">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h2 id="orders-title" className="text-lg font-semibold">
             Every order, newest first <SectionHelp k="ledger-orders" />
           </h2>
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Which outcomes to show">
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Which outcomes to show">
             {FILTERS.map((f) => (
-              <button
-                key={f}
-                type="button"
-                aria-pressed={filter === f}
-                onClick={() => setFilter(f)}
-                className={cn(
-                  "cursor-pointer rounded-full border px-3 py-1 text-xs transition-colors",
-                  filter === f ? "border-primary/50 bg-primary/15 text-foreground" : "border-white/10 bg-white/5 text-muted-foreground hover:text-foreground",
-                )}
-              >
+              <RetroButton key={f} type="button" variant={filter === f ? "cyan" : "darkGray"} aria-pressed={filter === f} onClick={() => setFilter(f)}>
                 {f === "all" ? "All" : outcomeLabel(f)}
-              </button>
+              </RetroButton>
             ))}
           </div>
         </div>
@@ -95,11 +87,13 @@ export default function LedgerPage() {
             <div className="space-y-3 text-sm">
               <p className="font-medium">No brief has been asked on this contract yet.</p>
               <p className="text-muted-foreground">The first order appears here a few seconds after its transaction is final.</p>
-              <Button asChild variant="cool" size="sm">
+              <LiquidButton asChild size="sm" className="text-foreground">
                 <Link href="/cards">
-                  Open the cards <ArrowRight />
+                  <span className="relative z-10 inline-flex items-center gap-1.5">
+                    Open the cards <ArrowRight />
+                  </span>
                 </Link>
-              </Button>
+              </LiquidButton>
             </div>
           }
         >
@@ -147,7 +141,7 @@ export default function LedgerPage() {
                       <span className="font-mono">#{r.seq}</span>
                       <Address value={r.by} />
                       {r.card ? (
-                        <Link href={cardPath(r.card)} className="font-mono text-primary underline-offset-4 hover:underline">
+                        <Link href={cardPath(r.card)} className="font-mono text-brand underline-offset-4 hover:underline">
                           {r.card}
                         </Link>
                       ) : null}
@@ -170,10 +164,10 @@ export default function LedgerPage() {
           {(d) => (
             <div className="space-y-3">
               {d.sections.length ? (
-                <dl className="grid gap-2">
+                <dl className="cells">
                   {d.sections.map((x) => (
-                    <div key={x.title} className="rounded-lg border bg-background/50 p-3">
-                      <dt className="text-xs font-semibold text-muted-foreground">{x.title}</dt>
+                    <div key={x.title} className="p-3">
+                      <dt className="eyebrow text-[10px]">{x.title}</dt>
                       <dd className="mt-0.5 text-sm text-foreground/90 text-pretty [overflow-wrap:anywhere]">{sentence(x.text)}</dd>
                     </div>
                   ))}
@@ -181,7 +175,7 @@ export default function LedgerPage() {
               ) : (
                 <p className="text-sm text-muted-foreground">The contract answered with its caps only.</p>
               )}
-              <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+              <dl className="cells grid-cols-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
                 {(
                   [
                     ["Title", `${d.limits.title[0]} to ${d.limits.title[1]} characters`],
@@ -192,9 +186,9 @@ export default function LedgerPage() {
                     ["One slice", `the bond divided by ${d.limits.bondSlices}`],
                   ] as [string, string][]
                 ).map(([label, value]) => (
-                  <div key={label} className="rounded-lg border bg-background/50 p-3">
+                  <div key={label} className="p-3">
                     <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-medium text-foreground">{value}</dd>
+                    <dd className="mt-0.5 font-mono text-foreground">{value}</dd>
                   </div>
                 ))}
               </dl>

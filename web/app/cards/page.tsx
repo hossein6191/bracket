@@ -12,10 +12,11 @@ import { CardTile } from "@/components/bracket";
 import { BlockSkeleton, ReadBlock, ReadError } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
 import { Button } from "@/components/ui/button";
+import { RetroButton } from "@/components/ui/button-retro";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { idNumber, readCards, readCardsFrom, type Card } from "@/lib/chain";
-import { cn } from "@/lib/utils";
 
 type Filter = "all" | "open" | "frozen";
 const FILTERS: [Filter, string][] = [
@@ -68,20 +69,11 @@ export default function CardsPage() {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Which cards to show">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Which cards to show">
         {FILTERS.map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            aria-pressed={filter === key}
-            onClick={() => setFilter(key)}
-            className={cn(
-              "cursor-pointer rounded-full border px-3 py-1 text-xs transition-colors",
-              filter === key ? "border-primary/50 bg-primary/15 text-foreground" : "border-white/10 bg-white/5 text-muted-foreground hover:text-foreground",
-            )}
-          >
+          <RetroButton key={key} type="button" variant={filter === key ? "cyan" : "darkGray"} aria-pressed={filter === key} onClick={() => setFilter(key)}>
             {label}
-          </button>
+          </RetroButton>
         ))}
       </div>
 
@@ -95,15 +87,17 @@ export default function CardsPage() {
         }
         emptyWhen={(d) => d.rows.length === 0}
         empty={
-          <div className="space-y-3 rounded-2xl border bg-card p-6 text-sm">
+          <div className="surface space-y-3 p-6 text-sm">
             <p className="font-medium">No card has been published on this contract yet.</p>
             <p className="text-muted-foreground">
               The first one is yours to write: the Publish page has whole example cards to start from. It takes one signature
               and under a minute.
             </p>
-            <Button asChild variant="cool" size="sm">
-              <Link href="/publish">Publish the first card</Link>
-            </Button>
+            <LiquidButton asChild size="sm" className="text-foreground">
+              <Link href="/publish">
+                <span className="relative z-10">Publish the first card</span>
+              </Link>
+            </LiquidButton>
           </div>
         }
       >

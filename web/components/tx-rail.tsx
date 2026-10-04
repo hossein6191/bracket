@@ -130,13 +130,13 @@ export function TxRail({ hash, label, onDone, showVotes, className }: TxRailProp
               key={stage}
               aria-current={current ? "step" : undefined}
               className={
-                "rounded-full border px-2 py-0.5 text-[11px] uppercase tracking-wide " +
+                "rounded-[4px] border px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-wide " +
                 (canceled && stage === "FINALIZED"
                   ? "border-rose-400/40 text-rose-300"
                   : reached
                     ? "border-emerald-400/40 bg-emerald-400/10 text-emerald-200"
                     : current
-                      ? "animate-pulse border-primary/50 text-foreground"
+                      ? "animate-pulse border-brand/50 text-foreground"
                       : "border-border text-muted-foreground")
               }
             >
@@ -145,7 +145,7 @@ export function TxRail({ hash, label, onDone, showVotes, className }: TxRailProp
           );
         })}
         {split && (
-          <li className="rounded-full border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 text-[11px] uppercase tracking-wide text-amber-200">
+          <li className="rounded-[4px] border border-amber-500/50 bg-amber-500/10 px-2 py-0.5 font-mono text-[10.5px] uppercase tracking-wide text-amber-200">
             no majority
           </li>
         )}
@@ -161,7 +161,7 @@ export function TxRail({ hash, label, onDone, showVotes, className }: TxRailProp
                   key={i}
                   title={kind}
                   className={
-                    "h-6 flex-1 rounded-md border text-center text-[10px] leading-6 " +
+                    "h-6 flex-1 rounded-[4px] border text-center font-mono text-[10px] leading-6 " +
                     (kind === "agree"
                       ? "border-emerald-400/50 bg-emerald-400/20 text-emerald-100"
                       : kind === "disagree"

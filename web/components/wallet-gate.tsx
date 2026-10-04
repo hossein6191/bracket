@@ -28,7 +28,7 @@ export function WalletGate({
     return (
       <div className={cn("flex flex-col items-start gap-3 rounded-xl border border-dashed bg-card p-4 text-sm", className)}>
         <div className="flex items-center gap-2 font-medium">
-          <Wallet className="size-4 text-primary" /> Connect a wallet to {action}.
+          <Wallet className="size-4 text-brand" /> Connect a wallet to {action}.
         </div>
         <p className="text-muted-foreground">
           Reading needs no wallet. Signing does: pick one from the list, then come back here. It takes a few seconds.

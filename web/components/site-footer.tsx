@@ -7,16 +7,16 @@ import { REPO_URL, SITE_TAGLINE } from "@/lib/config";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-t bg-background/60">
+    <footer className="mt-16 border-t bg-[#111112]/90">
       <div className="container-site grid gap-8 py-10 text-sm sm:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-3">
           <Logo />
-          <p className="text-muted-foreground">{SITE_TAGLINE}</p>
+          <p className="text-muted-foreground text-pretty">{SITE_TAGLINE}</p>
           <a
             href="https://genlayer.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-lg border bg-card px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-2 font-mono text-[11px] text-muted-foreground transition-colors hover:border-white/20 hover:text-foreground"
           >
             <span>Built on</span>
             {/* The GenLayer wordmark is used as shipped; the site never recolours it. */}
@@ -26,7 +26,7 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase">Contract</h2>
+          <h2 className="eyebrow">Contract</h2>
           <RegisterLine />
           <p className="text-xs text-muted-foreground">
             GenLayer Studio, chain 61999.{" "}
@@ -44,7 +44,7 @@ export function SiteFooter() {
         </div>
 
         <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase">Read more</h2>
+          <h2 className="eyebrow">Read more</h2>
           <ul className="space-y-1 text-xs">
             <li>
               <Link href="/ledger" className="underline-offset-4 hover:underline">

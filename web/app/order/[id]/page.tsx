@@ -13,7 +13,8 @@ import { ContractLine, MoneyRow, OutcomeBadge, StatusBadge, TierList } from "@/c
 import { BlockSkeleton, ReadBlock } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
 import { TxBlock } from "@/components/tx-block";
-import { Button } from "@/components/ui/button";
+import { RetroButton } from "@/components/ui/button-retro";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { succeeded, useTx } from "@/components/use-tx";
@@ -23,7 +24,9 @@ import { gen, when } from "@/lib/format";
 import { nextMove, outcomeMeaning, viewerOf } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
-const box = "rounded-2xl border bg-card p-5 sm:p-6";
+const box = "surface p-5 sm:p-6";
+/** An icon inside a keypad button's label. */
+const icon = "mr-1 inline size-3.5 align-[-2px]";
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = React.use(params);
@@ -35,11 +38,13 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
         <div className={cn(box, "space-y-3 text-sm")}>
           <p className="font-medium">That is not an order id.</p>
           <p className="text-muted-foreground">An order is named by an O and its number, like O7. The ledger lists every one.</p>
-          <Button asChild variant="cool" size="sm">
+          <LiquidButton asChild size="sm" className="text-foreground">
             <Link href="/ledger">
-              Open the ledger <ArrowRight />
+              <span className="relative z-10 inline-flex items-center gap-1.5">
+                Open the ledger <ArrowRight />
+              </span>
             </Link>
-          </Button>
+          </LiquidButton>
         </div>
       </div>
     );
@@ -69,11 +74,13 @@ function OrderView({ id }: { id: string }) {
           <div className={cn(box, "space-y-3 text-sm")}>
             <p className="font-medium">There is no order {id} on this contract.</p>
             <p className="text-muted-foreground">Orders are numbered in the order they were asked. The ledger lists the ones that exist.</p>
-            <Button asChild variant="cool" size="sm">
+            <LiquidButton asChild size="sm" className="text-foreground">
               <Link href="/ledger">
-                Open the ledger <ArrowRight />
+                <span className="relative z-10 inline-flex items-center gap-1.5">
+                  Open the ledger <ArrowRight />
+                </span>
               </Link>
-            </Button>
+            </LiquidButton>
           </div>
         }
       >
@@ -98,7 +105,7 @@ function OrderBody({ order: o, card: c, cardLoading, onDone }: { order: Order; c
           <div>
             <dt className="text-xs text-muted-foreground">Asked on</dt>
             <dd>
-              <Link href={cardPath(o.card)} className="font-mono text-primary underline-offset-4 hover:underline">
+              <Link href={cardPath(o.card)} className="font-mono text-brand underline-offset-4 hover:underline">
                 {o.card}
               </Link>
               {c ? <span className="text-muted-foreground"> · {c.title}</span> : null}
@@ -190,19 +197,19 @@ function NextMove({ order: o, viewer, onDone }: { order: Order; viewer: ReturnTy
       {o.status === "booked" ? (
         viewer === "buyer" ? (
           <WalletGate action="cancel this order">
-            <Button type="button" variant="outline" disabled={running || !me.ready} onClick={() => send(calls.cancel(o.id))}>
-              <Undo2 /> {running ? "Cancelling" : `Cancel and take ${gen(o.priceAtto)} back`}
-            </Button>
+            <RetroButton type="button" variant="darkGray" disabled={running || !me.ready} onClick={() => send(calls.cancel(o.id))}>
+              <Undo2 className={icon} /> {running ? "Cancelling" : `Cancel and take ${gen(o.priceAtto)} back`}
+            </RetroButton>
           </WalletGate>
         ) : viewer === "maker" ? (
           <WalletGate action="accept or decline this order">
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="cool" disabled={running || !me.ready} onClick={() => send(calls.accept(o.id))}>
-                <Check /> {running && tx.call?.fn === "accept" ? "Accepting" : `Accept and be paid ${gen(o.priceAtto)}`}
-              </Button>
-              <Button type="button" variant="outline" disabled={running || !me.ready} onClick={() => send(calls.decline(o.id))}>
-                <X /> {running && tx.call?.fn === "decline" ? "Declining" : "Decline and refund the buyer"}
-              </Button>
+            <div className="flex flex-wrap gap-3">
+              <RetroButton type="button" variant="cyan" disabled={running || !me.ready} onClick={() => send(calls.accept(o.id))}>
+                <Check className={icon} /> {running && tx.call?.fn === "accept" ? "Accepting" : `Accept and be paid ${gen(o.priceAtto)}`}
+              </RetroButton>
+              <RetroButton type="button" variant="white" disabled={running || !me.ready} onClick={() => send(calls.decline(o.id))}>
+                <X className={icon} /> {running && tx.call?.fn === "decline" ? "Declining" : "Decline and refund the buyer"}
+              </RetroButton>
             </div>
           </WalletGate>
         ) : (

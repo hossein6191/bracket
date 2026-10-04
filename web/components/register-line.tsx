@@ -52,7 +52,7 @@ export function YourRegisterNotice({ className }: { className?: string }): React
           <Undo2 /> Back to the site&apos;s contract
         </Button>
       ) : (
-        <Link href="/deploy" className="text-primary underline-offset-4 hover:underline">
+        <Link href="/deploy" className="text-brand underline-offset-4 hover:underline">
           Change it on the Deploy page
         </Link>
       )}
@@ -71,7 +71,7 @@ export function RegisterLine() {
           href={addressUrl(contract)}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 break-hash font-mono text-xs text-primary underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-1 break-hash font-mono text-xs text-brand underline-offset-4 hover:underline"
           title={contract}
         >
           {short(contract, 10, 8)}
@@ -80,7 +80,7 @@ export function RegisterLine() {
       ) : (
         <p className="text-xs text-muted-foreground">
           {isMock ? "Demo mode: an in-memory copy, not a deployed contract. " : "No contract is configured yet. "}
-          <Link href="/deploy" className="text-primary underline-offset-4 hover:underline">
+          <Link href="/deploy" className="text-brand underline-offset-4 hover:underline">
             Deploy one
           </Link>{" "}
           from your wallet.

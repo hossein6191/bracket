@@ -14,10 +14,11 @@ import { gen, when } from "@/lib/format";
 import { flagWords, outcomeLabel, sentence, standingLabel, statusLabel } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
-const pill = "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium";
-const GOOD = "border-keeps/40 bg-keeps/10 text-keeps";
-const WARN = "border-gold/40 bg-gold/10 text-gold";
-const QUIET = "border-border bg-muted/40 text-muted-foreground";
+// Tags are square-cornered and monospace: a state, never a button.
+const pill = "inline-flex items-center gap-1 rounded-[4px] border px-1.5 py-0.5 font-mono text-[11px] leading-4";
+const GOOD = "border-keeps/35 bg-keeps/10 text-keeps";
+const WARN = "border-gold/35 bg-gold/10 text-gold";
+const QUIET = "border-white/12 bg-white/[0.03] text-muted-foreground";
 
 /** Clean, frozen or closed. */
 export function StandingBadge({ card, className }: { card: Pick<Card, "open" | "frozen" | "flags" | "revisedTo">; className?: string }) {
@@ -43,7 +44,7 @@ export function OutcomeBadge({ outcome, className }: { outcome: Outcome; classNa
 }
 
 export function StatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
-  const style = status === "booked" ? "border-primary/40 bg-primary/10 text-primary" : status === "accepted" ? GOOD : QUIET;
+  const style = status === "booked" ? "border-brand/40 bg-brand/10 text-brand" : status === "accepted" ? GOOD : QUIET;
   return <span className={cn(pill, style, className)}>{statusLabel(status)}</span>;
 }
 
@@ -79,31 +80,45 @@ export function TierList({
   const flagged = flaggedTiers(flags);
   const marks = mask && mask !== "?" && mask.length === tiers.length ? mask : "";
   return (
-    <ol className={cn("grid gap-2", className)}>
+    <ol className={cn("divide-y overflow-hidden rounded-xl border bg-background/50", className)}>
       {tiers.map((t, i) => {
         const n = i + 1;
         const covered = marks ? marks[i] === "1" : false;
+        const lit = chosen === n ? "keeps" : marks && covered ? "gold" : "";
         return (
           <li
             key={n}
             className={cn(
-              "flex gap-3 rounded-xl border bg-background/50 p-3",
-              chosen === n ? "border-keeps/50 bg-keeps/10" : marks && covered ? "border-gold/40" : "",
+              "relative flex gap-3 p-3 transition-colors duration-500",
+              lit === "keeps" ? "bg-keeps/[0.08]" : lit === "gold" ? "bg-gold/[0.07]" : "",
             )}
           >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-linear-to-b from-brand to-brand-secondary text-xs font-semibold text-white">
-              {n}
+            <span
+              aria-hidden
+              className={cn("absolute inset-y-0 left-0 w-0.5 transition-colors duration-500", lit === "keeps" ? "bg-keeps" : lit === "gold" ? "bg-gold" : "bg-transparent")}
+            />
+            <span
+              className={cn(
+                "flex size-7 shrink-0 items-center justify-center rounded-md border font-mono text-[11px] transition-colors duration-500",
+                lit === "keeps" ? "border-keeps/50 text-keeps" : lit === "gold" ? "border-gold/50 text-gold" : "border-brand/35 bg-brand/[0.08] text-brand",
+              )}
+            >
+              {String(n).padStart(2, "0")}
             </span>
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="text-sm text-foreground/90 text-pretty [overflow-wrap:anywhere]">{t.text}</p>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="font-mono font-semibold text-foreground">{gen(t.priceAtto)}</span>
-                {marks ? (
-                  <span className={cn(pill, covered ? (chosen === n ? GOOD : WARN) : QUIET)}>{covered ? "covers the brief" : "does not cover it"}</span>
-                ) : null}
-                {chosen === n ? <span className={cn(pill, GOOD)}>sets the price</span> : null}
-                {flagged.has(n) ? <span className={cn(pill, WARN)}>caught overlapping</span> : null}
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <div className="flex items-start justify-between gap-3">
+                <p className="min-w-0 text-sm text-foreground/90 text-pretty [overflow-wrap:anywhere]">{t.text}</p>
+                <span className="shrink-0 pt-px font-mono text-sm font-semibold text-foreground tabular-nums">{gen(t.priceAtto)}</span>
               </div>
+              {marks || chosen === n || flagged.has(n) ? (
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {marks ? (
+                    <span className={cn(pill, covered ? (chosen === n ? GOOD : WARN) : QUIET)}>{covered ? "covers the brief" : "does not cover it"}</span>
+                  ) : null}
+                  {chosen === n ? <span className={cn(pill, GOOD)}>sets the price</span> : null}
+                  {flagged.has(n) ? <span className={cn(pill, WARN)}>caught overlapping</span> : null}
+                </div>
+              ) : null}
             </div>
           </li>
         );
@@ -125,33 +140,33 @@ export function FlagLine({ flags, className }: { flags: string[]; className?: st
 /** One card as a tile of the cards page. */
 export function CardTile({ card, mine }: { card: Card; mine?: boolean }) {
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border bg-card p-5">
+    <article className="surface flex flex-col gap-4 p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="font-mono text-xs text-brand">
             {card.id}
-            {mine ? " · yours" : ""}
+            <span className="text-muted-foreground">{mine ? " · yours" : ""}</span>
           </p>
-          <h3 className="text-lg font-semibold [overflow-wrap:anywhere]">{card.title}</h3>
+          <h3 className="text-lg font-semibold tracking-tight [overflow-wrap:anywhere]">{card.title}</h3>
         </div>
         <StandingBadge card={card} />
       </div>
       <TierList tiers={card.tiers} flags={card.flags} />
       <FlagLine flags={card.flags} />
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-4">
-        <div>
+      <dl className="cells grid-cols-2 text-xs sm:grid-cols-4">
+        <div className="px-3 py-2">
           <dt className="text-muted-foreground">You send</dt>
           <dd className="font-mono text-foreground">{gen(card.topPriceAtto)}</dd>
         </div>
-        <div>
+        <div className="px-3 py-2">
           <dt className="text-muted-foreground">Bond left</dt>
           <dd className="font-mono text-foreground">{gen(card.bondAtto)}</dd>
         </div>
-        <div>
+        <div className="px-3 py-2">
           <dt className="text-muted-foreground">Orders</dt>
           <dd className="font-mono text-foreground">{card.orders}</dd>
         </div>
-        <div>
+        <div className="px-3 py-2">
           <dt className="text-muted-foreground">Published</dt>
           <dd className="text-foreground">{when(card.createdAt) || "not recorded"}</dd>
         </div>
@@ -160,7 +175,7 @@ export function CardTile({ card, mine }: { card: Card; mine?: boolean }) {
         <LadderBadge ladder={card.ladder} />
         <Link
           href={cardPath(card.open || !card.revisedTo ? card.id : card.revisedTo)}
-          className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-1 text-sm font-medium text-brand underline-offset-4 hover:underline"
         >
           {!card.open && card.revisedTo
             ? `Open its replacement, ${card.revisedTo}`
@@ -185,11 +200,11 @@ export function MoneyRow({ order, className }: { order: Order; className?: strin
   ];
   if (order.paidAtto !== "0") cells.unshift(["Sent with the brief", order.paidAtto, "text-foreground"]);
   return (
-    <dl className={cn("grid gap-2 text-xs sm:grid-cols-2", cells.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3", className)}>
+    <dl className={cn("cells text-xs sm:grid-cols-2", cells.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3", className)}>
       {cells.map(([label, value, tone]) => (
-        <div key={label} className="rounded-lg border bg-background/50 p-3">
+        <div key={label} className="p-3">
           <dt className="text-muted-foreground">{label}</dt>
-          <dd className={cn("font-mono text-base font-semibold", tone)}>{gen(value)}</dd>
+          <dd className={cn("mt-0.5 font-mono text-base font-semibold tabular-nums", tone)}>{gen(value)}</dd>
         </div>
       ))}
     </dl>
@@ -200,8 +215,8 @@ export function MoneyRow({ order, className }: { order: Order; className?: strin
 export function ContractLine({ line, className }: { line: string; className?: string }) {
   if (!line) return null;
   return (
-    <figure className={cn("rounded-xl border border-primary/30 bg-primary/5 p-3", className)}>
-      <figcaption className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">The contract wrote</figcaption>
+    <figure className={cn("rounded-r-lg border-l-2 border-brand-secondary/70 bg-brand-secondary/[0.05] py-2.5 pr-3 pl-3", className)}>
+      <figcaption className="eyebrow text-[10px]">The contract wrote</figcaption>
       <blockquote className="mt-1 text-sm text-foreground/90 text-pretty [overflow-wrap:anywhere]">{sentence(line)}</blockquote>
     </figure>
   );
@@ -210,9 +225,9 @@ export function ContractLine({ line, className }: { line: string; className?: st
 /** One order as a row of a list. `showCard` adds the card it was asked on. */
 export function OrderRow({ order, showCard = true, role }: { order: Order; showCard?: boolean; role?: string }) {
   return (
-    <li className="rounded-xl border bg-background/40 p-3">
+    <li className="rounded-xl border bg-background/50 p-3 transition-colors hover:border-white/20">
       <div className="flex flex-wrap items-center gap-2">
-        <Link href={orderPath(order.id)} className="font-mono text-sm font-semibold text-primary underline-offset-4 hover:underline">
+        <Link href={orderPath(order.id)} className="font-mono text-sm font-semibold text-brand underline-offset-4 hover:underline">
           {order.id}
         </Link>
         {showCard && order.card ? (
@@ -242,7 +257,7 @@ export function OrderRow({ order, showCard = true, role }: { order: Order; showC
             From the bond <span className="font-mono text-gold">{gen(order.bondPaidAtto)}</span>
           </span>
         ) : null}
-        <Link href={orderPath(order.id)} className="ml-auto inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline">
+        <Link href={orderPath(order.id)} className="ml-auto inline-flex items-center gap-1 font-mono text-brand underline-offset-4 hover:underline">
           Open <ArrowRight className="size-3" />
         </Link>
       </div>

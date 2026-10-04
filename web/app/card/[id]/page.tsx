@@ -16,6 +16,8 @@ import { SectionHelp } from "@/components/section-help";
 import { Suggest } from "@/components/suggest";
 import { TxBlock } from "@/components/tx-block";
 import { Button } from "@/components/ui/button";
+import { EncryptButton } from "@/components/ui/encrypt-button";
+import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { Textarea } from "@/components/ui/textarea";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
@@ -45,7 +47,7 @@ import { gen, when } from "@/lib/format";
 import { outcomeMeaning, sentence } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
-const box = "rounded-2xl border bg-card p-5 sm:p-6";
+const box = "surface p-5 sm:p-6";
 /** One view call per order, so only the newest few are read. */
 const LATEST = 5;
 
@@ -66,11 +68,13 @@ export default function CardPage({ params }: { params: Promise<{ id: string }> }
         <div className={cn(box, "space-y-3 text-sm")}>
           <p className="font-medium">That is not a card id.</p>
           <p className="text-muted-foreground">A card is named by a C and its number, like C3. The cards page lists every one.</p>
-          <Button asChild variant="cool" size="sm">
+          <LiquidButton asChild size="sm" className="text-foreground">
             <Link href="/cards">
-              Open the cards <ArrowRight />
+              <span className="relative z-10 inline-flex items-center gap-1.5">
+                Open the cards <ArrowRight />
+              </span>
             </Link>
-          </Button>
+          </LiquidButton>
         </div>
       </div>
     );
@@ -100,11 +104,13 @@ function CardView({ id }: { id: string }) {
           <div className={cn(box, "space-y-3 text-sm")}>
             <p className="font-medium">There is no card {id} on this contract.</p>
             <p className="text-muted-foreground">Cards are numbered in the order they were published. The cards page lists the ones that exist.</p>
-            <Button asChild variant="cool" size="sm">
+            <LiquidButton asChild size="sm" className="text-foreground">
               <Link href="/cards">
-                Open the cards <ArrowRight />
+                <span className="relative z-10 inline-flex items-center gap-1.5">
+                  Open the cards <ArrowRight />
+                </span>
               </Link>
-            </Button>
+            </LiquidButton>
           </div>
         }
       >
@@ -126,7 +132,7 @@ function CardView({ id }: { id: string }) {
               <h2 id="latest-title" className="text-lg font-semibold">
                 This card&apos;s latest orders <SectionHelp k="card-orders" />
               </h2>
-              <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-5">
+              <dl className="cells grid-cols-2 text-xs sm:grid-cols-5">
                 {(
                   [
                     ["Orders", d.orders],
@@ -136,9 +142,9 @@ function CardView({ id }: { id: string }) {
                     ["No price fixed", d.unclear],
                   ] as [string, number][]
                 ).map(([label, value]) => (
-                  <div key={label} className="rounded-lg border bg-background/50 p-3">
+                  <div key={label} className="p-3 last:col-span-2 sm:last:col-span-1">
                     <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-mono text-base font-semibold">{value}</dd>
+                    <dd className="mt-0.5 font-mono text-base font-semibold tabular-nums">{value}</dd>
                   </div>
                 ))}
               </dl>
@@ -248,7 +254,7 @@ function Blocked({ card: c, isMaker }: { card: Card; isMaker: boolean }) {
     );
   if (isMaker)
     return (
-      <div className="space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm">
+      <div className="space-y-3 rounded-xl border border-brand/30 bg-brand/5 p-4 text-sm">
         <p className="font-medium">
           You published this card. <SectionHelp k="card-maker" />
         </p>
@@ -364,16 +370,13 @@ function QuoteBox({ card: c, onDone }: { card: Card; onDone: () => void }) {
           </div>
 
           <WalletGate action="get a binding price">
-            <div className="space-y-2">
-              <Button
-                type="button"
-                variant="cool"
-                size="lg"
+            <div className="space-y-3">
+              <EncryptButton
+                className="max-w-full"
                 disabled={running || !brief.trim() || !!problem || !me.ready || short}
                 onClick={() => void tx.start(calls.quote(c.id, brief, top))}
-              >
-                {tx.sending ? "Waiting for your wallet" : running ? "The validators are reading" : `Get a binding price · send ${gen(c.topPriceAtto)}`}
-              </Button>
+                label={tx.sending ? "Waiting for your wallet" : running ? "The validators are reading" : `Get a binding price · send ${gen(c.topPriceAtto)}`}
+              />
               {short ? (
                 <p className="text-xs text-gold">
                   This wallet holds {gen(me.balanceAtto)} and the quote sends {gen(c.topPriceAtto)}.{" "}
@@ -427,7 +430,7 @@ function QuoteResult({ outcome, card: c, sent, onAgain }: { outcome: QuoteOutcom
           ? "Nothing more happens to this order. You may ask another card, or ask this one for something its tiers do cover."
           : "Nothing more happens to this order. You may ask again in different words; these exact words are closed on this card.";
   return (
-    <div className="space-y-4 rounded-xl border border-primary/30 bg-background/60 p-4" role="status">
+    <div className="space-y-4 rounded-xl border border-brand/30 bg-background/60 p-4" role="status">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-base font-semibold">
           The result <SectionHelp k="card-result" />
