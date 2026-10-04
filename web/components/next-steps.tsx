@@ -61,7 +61,7 @@ export function MakerNextSteps({ card }: { card: string }) {
         {steps.map(([title, body], i) => (
           <li key={title} className="flex gap-3">
             <span className="flex size-6 shrink-0 items-center justify-center rounded-md border border-primary/40 bg-primary/10 font-mono text-xs text-primary">
-              {String(i + 1).padStart(2, "0")}
+              {String(i + 1)}
             </span>
             <span className="min-w-0 text-sm">
               <span className="block font-medium">{title}</span>

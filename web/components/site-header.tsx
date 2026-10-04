@@ -80,7 +80,7 @@ export function SiteHeader() {
                     )}
                   >
                     <span className={cn("text-[10px] tabular-nums", active ? "text-brand" : "text-white/35 group-hover:text-white/60")}>
-                      {String(i + 1).padStart(2, "0")}
+                      {String(i + 1)}
                     </span>
                     {n.label}
                     <span

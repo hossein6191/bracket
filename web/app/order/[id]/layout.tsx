@@ -6,7 +6,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const m = /^O?([1-9]\d{0,8})$/i.exec(id);
   return {
-    title: m ? `Order O${m[1]}` : "Order",
+    title: m ? `Order ${m[1]}` : "Order",
     description: "One order: the brief, which tiers covered it, where the money went, and what the buyer or the maker can still do.",
   };
 }

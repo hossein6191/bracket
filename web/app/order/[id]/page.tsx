@@ -4,6 +4,8 @@
 // money went, the sentence the contract wrote, and the move that is open to whoever is looking:
 // the buyer may cancel a booked order, and the card's maker may accept or decline it.
 
+import { useLocal } from "@/components/use-local";
+import { quoteTxOf } from "@/lib/tx-memory";
 import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check, Undo2, X } from "lucide-react";
@@ -19,8 +21,8 @@ import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { succeeded, useTx } from "@/components/use-tx";
 import { WalletGate } from "@/components/wallet-gate";
-import { calls, cardPath, invalidateReads, parseOrderId, readCard, readOrder, type Call, type Card, type Order } from "@/lib/chain";
-import { gen, when } from "@/lib/format";
+import { calls, cardPath, invalidateReads, parseOrderId, readCard, readOrder, type Call, type Card, type Order, txUrl } from "@/lib/chain";
+import { gen, orderName, when } from "@/lib/format";
 import { nextMove, outcomeMeaning, viewerOf } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
@@ -97,9 +99,10 @@ function OrderBody({ order: o, card: c, cardLoading, onDone }: { order: Order; c
     <div className="space-y-6">
       <header className={cn(box, "space-y-3")}>
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="font-mono text-2xl font-bold tracking-tight sm:text-3xl">{o.id}</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{orderName(o.id)}</h1>
           <OutcomeBadge outcome={o.outcome} />
           <StatusBadge status={o.status} />
+          <QuoteTxLink order={o.id} />
         </div>
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
           <div>
@@ -221,7 +224,7 @@ function NextMove({ order: o, viewer, onDone }: { order: Order; viewer: ReturnTy
         )
       ) : null}
 
-      <TxBlock tx={tx} label={`${label} ${o.id}`} />
+      <TxBlock tx={tx} label={`${label} ${orderName(o.id)}`} />
       {done ? (
         <p className="rounded-lg border border-keeps/40 bg-keeps/10 p-3 text-sm text-foreground" role="status">
           Done. The order is settled and the money lands a few seconds after the transaction is final. Nobody has anything left to
@@ -229,5 +232,21 @@ function NextMove({ order: o, viewer, onDone }: { order: Order; viewer: ReturnTy
         </p>
       ) : null}
     </section>
+  );
+}
+
+/** The explorer link of the transaction that made this order, when this browser sent it. */
+function QuoteTxLink({ order }: { order: string }) {
+  const hash = useLocal(() => quoteTxOf(order), "");
+  if (!hash) return null;
+  return (
+    <a
+      href={txUrl(hash)}
+      target="_blank"
+      rel="noreferrer"
+      className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-xs text-primary transition-colors hover:bg-primary/20"
+    >
+      View the transaction · {hash.slice(0, 10)}…{hash.slice(-6)} ↗
+    </a>
   );
 }

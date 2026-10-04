@@ -112,3 +112,6 @@ export function ago(seconds: number, nowSeconds: number): string {
 /** "one", "two" ... for small counts in running text. */
 export const countWord = (n: number): string =>
   ["no", "one", "two", "three", "four", "five", "six", "seven", "eight"][n] ?? String(n);
+
+/** An order's name for people: "Order 10", because "O10" reads as zero-ten. */
+export const orderName = (id: string): string => (/^O\d+$/.test(id) ? `Order ${id.slice(1)}` : id);

@@ -33,6 +33,7 @@ import {
   textProblem,
   tidy,
   orderPath,
+  txUrl,
   parseCardId,
   quoteOutcome,
   readCard,
@@ -44,7 +45,8 @@ import {
   type ReadResult,
 } from "@/lib/chain";
 import { briefsFor } from "@/lib/examples";
-import { gen, when } from "@/lib/format";
+import { rememberQuoteTx } from "@/lib/tx-memory";
+import { gen, orderName, when } from "@/lib/format";
 import { outcomeMeaning, sentence } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
@@ -285,7 +287,11 @@ function Blocked({ card: c, isMaker }: { card: Card; isMaker: boolean }) {
 function QuoteBox({ card: c, onDone }: { card: Card; onDone: () => void }) {
   const me = useMe();
   const [brief, setBrief] = React.useState("");
-  const tx = useTx(() => onDone());
+  const tx = useTx((status, hash) => {
+    const made = quoteOutcome(status);
+    if (made && made.kind === "result" && made.order.id) rememberQuoteTx(made.order.id, hash);
+    onDone();
+  });
   const isMaker = !!me.address && me.address === c.maker;
   const top = BigInt(c.topPriceAtto);
   const problem = brief.trim() ? textProblem(brief, LIMITS.brief, "A brief") : "";
@@ -389,6 +395,19 @@ function QuoteBox({ card: c, onDone }: { card: Card; onDone: () => void }) {
           </WalletGate>
         </>
       )}
+      {tx.hash ? (
+        <a
+          href={txUrl(tx.hash)}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center justify-between gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary transition-colors hover:bg-primary/20"
+        >
+          <span>{running ? "Your quote is with the validators. Watch them vote on the explorer" : "Your quote on the explorer"}</span>
+          <span className="font-mono text-xs">
+            {tx.hash.slice(0, 10)}…{tx.hash.slice(-6)} ↗
+          </span>
+        </a>
+      ) : null}
       <TxBlock tx={tx} label={`Asking ${c.id} for a price`} votes />
       {outcome ? (
         <QuoteResult
@@ -438,7 +457,7 @@ function QuoteResult({ outcome, card: c, sent, onAgain }: { outcome: QuoteOutcom
           The result <SectionHelp k="card-result" />
         </h3>
         <OutcomeBadge outcome={o.outcome} />
-        {o.id ? <span className="font-mono text-xs text-muted-foreground">{o.id}</span> : null}
+        {o.id ? <span className="text-xs text-muted-foreground">{orderName(o.id)}</span> : null}
       </div>
       <p className="text-sm text-foreground/90">
         {o.outcome === "exact" ? `Tier ${o.tier} covers your brief: the price is ${gen(o.priceAtto)}. ` : ""}
@@ -456,7 +475,7 @@ function QuoteResult({ outcome, card: c, sent, onAgain }: { outcome: QuoteOutcom
         {o.id ? (
           <Button asChild variant="cool" size="sm">
             <Link href={orderPath(o.id)}>
-              Open order {o.id} <ArrowRight />
+              Open {orderName(o.id)} <ArrowRight />
             </Link>
           </Button>
         ) : null}

@@ -71,7 +71,7 @@ export default function HomePage() {
         <ol className="cells rounded-2xl shadow-custom sm:grid-cols-2 lg:grid-cols-5">
           {FIVE.map(([title, body], i) => (
             <li key={title} className="space-y-2 p-5 sm:last:col-span-2 lg:last:col-span-1">
-              <span className="font-mono text-xs text-brand">{String(i + 1).padStart(2, "0")}</span>
+              <span className="font-mono text-xs text-brand">{String(i + 1)}</span>
               <p className="text-sm font-semibold">{title}</p>
               <p className="text-xs text-muted-foreground text-pretty">{body}</p>
             </li>

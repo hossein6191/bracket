@@ -82,7 +82,7 @@ function Stepper({ guide: g }: { guide: Guide }) {
                           : "border-white/20 bg-card text-muted-foreground group-hover:border-brand/60 group-hover:text-foreground",
                     )}
                   >
-                    {String(i + 1).padStart(2, "0")}
+                    {String(i + 1)}
                   </span>
                   <span className={cn("text-xs leading-snug text-balance", current ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")}>
                     {stepTitle}
@@ -95,7 +95,7 @@ function Stepper({ guide: g }: { guide: Guide }) {
       </div>
       <div className="rounded-lg border bg-background/60 p-3" aria-live="polite">
         <p className="font-mono text-[11px] text-brand-secondary">
-          {String(active + 1).padStart(2, "0")} / {String(g.steps.length).padStart(2, "0")}
+          {String(active + 1)} / {String(g.steps.length)}
         </p>
         <p className="mt-1 text-sm font-medium">{title}</p>
         <p className="mt-0.5 text-sm text-muted-foreground text-pretty">{body}</p>

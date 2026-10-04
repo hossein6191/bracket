@@ -18,7 +18,7 @@ export function StepTrack({ steps, className }: { steps: (string | [string, stri
           <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
             {i < steps.length - 1 ? <span aria-hidden className="absolute top-7 bottom-0 left-3.5 w-px bg-border" /> : null}
             <span className="relative flex size-7 shrink-0 items-center justify-center rounded-md border border-brand/40 bg-background font-mono text-[11px] text-brand">
-              {String(i + 1).padStart(2, "0")}
+              {String(i + 1)}
             </span>
             <span className="min-w-0 pt-1 text-sm">
               {title ? <span className="block font-medium text-foreground">{title}</span> : null}

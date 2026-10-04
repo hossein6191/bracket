@@ -10,7 +10,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, CircleSlash, Copy as CopyIcon, HelpCircle, Layers, Lock, ShieldCheck, Snowflake } from "lucide-react";
 
 import { cardPath, orderPath, type Card, type Order, type OrderStatus, type Outcome, type Tier } from "@/lib/chain";
-import { gen, when } from "@/lib/format";
+import { gen, orderName, when } from "@/lib/format";
 import { flagWords, outcomeLabel, sentence, standingLabel, statusLabel } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +103,7 @@ export function TierList({
                 lit === "keeps" ? "border-keeps/50 text-keeps" : lit === "gold" ? "border-gold/50 text-gold" : "border-brand/35 bg-brand/[0.08] text-brand",
               )}
             >
-              {String(n).padStart(2, "0")}
+              {String(n)}
             </span>
             <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex items-start justify-between gap-3">
@@ -228,7 +228,7 @@ export function OrderRow({ order, showCard = true, role }: { order: Order; showC
     <li className="rounded-xl border bg-background/50 p-3 transition-colors hover:border-white/20">
       <div className="flex flex-wrap items-center gap-2">
         <Link href={orderPath(order.id)} className="font-mono text-sm font-semibold text-brand underline-offset-4 hover:underline">
-          {order.id}
+          {orderName(order.id)}
         </Link>
         {showCard && order.card ? (
           <Link href={cardPath(order.card)} className="font-mono text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">

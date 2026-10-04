@@ -145,7 +145,7 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
             <div className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-2 text-sm font-medium">
                 <span className="flex size-6 items-center justify-center rounded-md border border-brand/35 bg-brand/[0.08] font-mono text-[11px] text-brand">
-                  {String(i + 1).padStart(2, "0")}
+                  {String(i + 1)}
                 </span>
                 Tier {i + 1}
               </span>
