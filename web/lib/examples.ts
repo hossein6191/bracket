@@ -85,8 +85,8 @@ export const TRANSLATOR: ExampleCard = {
       covers: [2],
     },
     {
-      label: "A wedding speech by tonight",
-      brief: "I need my 400-word wedding speech translated from English to Spanish by tonight, in eight hours.",
+      label: "A wedding speech in two days",
+      brief: "I need my 400-word wedding speech translated from English to Spanish by the day after tomorrow, in about 40 hours.",
       covers: [4],
     },
     {
@@ -238,8 +238,8 @@ export const ILLUSTRATOR: ExampleCard = {
       covers: [],
     },
     {
-      label: "Three spot drawings",
-      brief: "I need three small black and white drawings to open three chapters of a cookbook.",
+      label: "A spot drawing for a cookbook",
+      brief: "I need one small black and white drawing, about 6 cm wide, to open a chapter of a cookbook.",
       covers: [1],
     },
     {
@@ -361,7 +361,7 @@ export const DEVELOPER: ExampleCard = {
     { label: "A single landing page", brief: "Build me a one-page site for my yoga classes, with the timetable and a contact form. I will send the text and photos.", covers: [1, 2, 3] },
     { label: "A four-page site with a blog", brief: "I need a four-page website for my plumbing business, with a blog for tips, built from my own words and photos.", covers: [2, 3] },
     { label: "A shop of 12 products", brief: "Make a ten-page website for my ceramics studio, with a booking calendar for classes and a shop for 12 pieces.", covers: [3] },
-    { label: "A mobile app (outside the card)", brief: "Build an iPhone and Android app for ordering from my café.", covers: [] },
+    { label: "A mobile app (outside the card)", brief: "Build an iPhone and Android app for ordering from my cafe.", covers: [] },
   ],
 };
 

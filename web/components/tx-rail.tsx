@@ -189,7 +189,7 @@ export function TxRail({ hash, label, onDone, showVotes, className }: TxRailProp
         </div>
       )}
 
-      <div className="text-sm">
+      <div className="text-sm" role="status" aria-live="polite">
         {!status && <p className="text-muted-foreground">Sent. Waiting for the network…</p>}
         {status && !final && (
           <p className="text-muted-foreground">

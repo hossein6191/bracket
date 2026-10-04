@@ -191,11 +191,22 @@ export function CardTile({ card, mine }: { card: Card; mine?: boolean }) {
   );
 }
 
+/** True once a booked order's price went back to its buyer (declined or cancelled). */
+const priceWentBack = (o: Order) => o.status === "declined" || o.status === "cancelled";
+
+/**
+ * Everything that came back to the buyer, in atto. The contract keeps an order's quote-time
+ * refund and price as they were, so a declined or cancelled order adds the price that left escrow.
+ */
+const returnedToBuyer = (o: Order): string =>
+  priceWentBack(o) ? (BigInt(o.refundedAtto || "0") + BigInt(o.priceAtto || "0")).toString() : o.refundedAtto;
+
 /** Where an order's money went, as a row of figures. */
 export function MoneyRow({ order, className }: { order: Order; className?: string }) {
+  const priceLabel = order.status === "accepted" ? "Paid to the maker" : priceWentBack(order) ? "Escrow returned to the buyer" : "Price in escrow";
   const cells: [string, string, string][] = [
-    ["Price in escrow", order.priceAtto, order.priceAtto !== "0" ? "text-foreground" : "text-muted-foreground"],
-    ["Returned to the buyer", order.refundedAtto, "text-foreground"],
+    [priceLabel, order.priceAtto, order.priceAtto !== "0" ? "text-foreground" : "text-muted-foreground"],
+    [priceWentBack(order) ? "Returned to the buyer in all" : "Returned to the buyer", returnedToBuyer(order), "text-foreground"],
     ["Paid from the maker's bond", order.bondPaidAtto, order.bondPaidAtto !== "0" ? "text-gold" : "text-muted-foreground"],
   ];
   if (order.paidAtto !== "0") cells.unshift(["Sent with the brief", order.paidAtto, "text-foreground"]);
@@ -250,7 +261,7 @@ export function OrderRow({ order, showCard = true, role }: { order: Order; showC
           <span>No tier priced it</span>
         )}
         <span>
-          Returned <span className="font-mono text-foreground">{gen(order.refundedAtto)}</span>
+          Returned <span className="font-mono text-foreground">{gen(returnedToBuyer(order))}</span>
         </span>
         {order.bondPaidAtto !== "0" ? (
           <span>

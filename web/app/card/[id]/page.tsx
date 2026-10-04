@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { EncryptButton } from "@/components/ui/encrypt-button";
 import { LiquidButton } from "@/components/ui/liquid-glass-button";
 import { Textarea } from "@/components/ui/textarea";
+import { useLocal } from "@/components/use-local";
 import { useMe } from "@/components/use-me";
 import { useRead } from "@/components/use-read";
 import { useTx } from "@/components/use-tx";
@@ -29,6 +30,7 @@ import {
   LIMITS,
   calls,
   cardPath,
+  contractAddress,
   invalidateReads,
   isMock,
   textProblem,
@@ -47,19 +49,39 @@ import {
 } from "@/lib/chain";
 import { briefsFor } from "@/lib/examples";
 import { rememberQuoteTx } from "@/lib/tx-memory";
-import { gen, orderName, when } from "@/lib/format";
+import { gen, genText, orderName, when } from "@/lib/format";
+import { siteRegister } from "@/lib/register";
 import { outcomeMeaning, sentence } from "@/lib/words";
 import { cn } from "@/lib/utils";
 
 const box = "surface p-5 sm:p-6";
 /** One view call per order, so only the newest few are read. */
 const LATEST = 5;
+/** The most older orders read, a few at a time, to find booked ones the newest few do not include. */
+const HUNT = 15;
 
-async function readLatestOrders(card: string): Promise<ReadResult<Order[]>> {
+/**
+ * The card's newest orders, and above them any older order still booked on it: while fewer
+ * booked orders are found than the card counts (`booked`), older ids are read a few at a time.
+ */
+async function readLatestOrders(card: string, booked: number): Promise<ReadResult<Order[]>> {
   const ids = await readOrdersOf(card);
   const got = await readEach(ids.data.slice(0, LATEST), (id) => readOrder(id), 3);
   const rows = got.flatMap((r) => (r.status === "fulfilled" && r.value.data ? [r.value.data] : []));
-  return { data: rows, source: ids.source };
+  const older: Order[] = [];
+  let found = rows.filter((o) => o.status === "booked").length;
+  for (let i = LATEST; found < booked && i < ids.data.length && i < LATEST + HUNT; i += LATEST) {
+    const more = await readEach(ids.data.slice(i, Math.min(i + LATEST, LATEST + HUNT)), (id) => readOrder(id), 3);
+    for (const r of more) {
+      if (r.status === "fulfilled" && r.value.data?.status === "booked") {
+        older.push(r.value.data);
+        found++;
+      }
+    }
+    // A refused read (the rate limit) ends the search; what was found is still shown.
+    if (more.some((r) => r.status === "rejected")) break;
+  }
+  return { data: [...older, ...rows], source: ids.source };
 }
 
 export default function CardPage({ params }: { params: Promise<{ id: string }> }) {
@@ -86,9 +108,13 @@ export default function CardPage({ params }: { params: Promise<{ id: string }> }
 }
 
 function CardView({ id }: { id: string }) {
-  const card = useRead(() => readCard(id), [id]);
+  // The contract this browser writes to: when another tab picks another one on /deploy, the
+  // card is read again from it, so a quote never goes to a contract other than the one shown.
+  const register = useLocal(contractAddress, siteRegister());
+  const card = useRead(() => readCard(id), [id, register]);
   const c = card.data;
-  const orders = useRead(() => readLatestOrders(id), [id], { enabled: !!c && c.orders > 0 });
+  const booked = c?.booked ?? 0;
+  const orders = useRead(() => readLatestOrders(id, booked), [id, register], { enabled: !!c && c.orders > 0 });
 
   const refresh = () => {
     invalidateReads();
@@ -155,7 +181,7 @@ function CardView({ id }: { id: string }) {
               {d.orders === 0 ? (
                 <p className="text-sm text-muted-foreground">Nobody has asked this card for a price yet. The first brief can be yours.</p>
               ) : (
-                <ReadBlock state={orders} skeleton={<BlockSkeleton lines={3} />} emptyWhen={(rows) => rows.length === 0} empty={<p className="text-sm text-muted-foreground">The orders could not be listed just now. The ledger has every order.</p>}>
+                <ReadBlock state={orders} skeleton={<BlockSkeleton lines={3} />} emptyWhen={(rows) => rows.length === 0} empty={<p className="text-sm text-muted-foreground">The orders could not be listed just now. Read again in a minute.</p>}>
                   {(rows) => (
                     <ul className="grid gap-2">
                       {rows.map((o) => (
@@ -221,11 +247,24 @@ function Blocked({ card: c, isMaker }: { card: Card; isMaker: boolean }) {
               Its maker replaced it with {c.revisedTo}, which carries the bond that was left. This card stays readable, with its
               flags, as the history of that one.
             </p>
-            <Button asChild variant="cool" size="sm">
-              <Link href={cardPath(c.revisedTo)}>
-                Open {c.revisedTo} <ArrowRight />
-              </Link>
-            </Button>
+            {isMaker && c.booked > 0 ? (
+              <p className="text-foreground/85">
+                Next: you. {c.booked} booked {c.booked === 1 ? "order still waits" : "orders still wait"} on this card for you to accept
+                or decline, under Orders.
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="cool" size="sm">
+                <Link href={cardPath(c.revisedTo)}>
+                  Open {c.revisedTo} <ArrowRight />
+                </Link>
+              </Button>
+              {isMaker && c.booked > 0 ? (
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/orders">Orders on your cards</Link>
+                </Button>
+              ) : null}
+            </div>
           </>
         ) : (
           <p className="text-muted-foreground">Its maker closed it and took the remaining bond back. Nobody has anything left to do here.</p>
@@ -269,7 +308,7 @@ function Blocked({ card: c, isMaker }: { card: Card; isMaker: boolean }) {
             : "No order is booked on it now, so nothing is needed from you."}{" "}
           The Publish page revises or closes it.
         </p>
-        <MakerNextSteps card={c.id} />
+        <MakerNextSteps card={c.id} ladder={c.ladder} sliceAtto={c.bondSliceAtto} />
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
             <Link href="/orders">Orders on your cards</Link>
@@ -389,11 +428,11 @@ function QuoteBox({ card: c, onDone }: { card: Card; onDone: () => void }) {
                 className="max-w-full"
                 disabled={running || !brief.trim() || !!problem || !me.ready || short}
                 onClick={() => void tx.start(calls.quote(c.id, brief, top))}
-                label={tx.sending ? "Waiting for your wallet" : running ? "The validators are reading" : `Get a binding price · send ${gen(c.topPriceAtto)}`}
+                label={tx.sending ? "Waiting for your wallet" : running ? "The validators are reading" : `Get a binding price · send ${genText(c.topPriceAtto)} GEN`}
               />
               {short ? (
                 <p className="text-xs text-gold">
-                  This wallet holds {gen(me.balanceAtto)} and the quote sends {gen(c.topPriceAtto)}.{" "}
+                  This wallet holds {genText(me.balanceAtto)} GEN and the quote sends {genText(c.topPriceAtto)} GEN.{" "}
                   {isMock ? "Press Get 10 test GEN in the demo bar at the top." : "The wallet menu at the top right has a button that gets 10 test GEN."}
                 </p>
               ) : null}
@@ -467,7 +506,7 @@ function QuoteResult({ outcome, card: c, sent, onAgain }: { outcome: QuoteOutcom
       </div>
       <p className="text-sm text-foreground/90">
         {o.outcome === "exact" ? `Tier ${o.tier} covers your brief: the price is ${gen(o.priceAtto)}. ` : ""}
-        {outcomeMeaning(o.outcome)}
+        {outcomeMeaning(o.outcome, o.mask)}
       </p>
       {o.mask === "?" ? (
         <p className="text-xs text-muted-foreground">Stored value: a question mark. The two askings did not name the same tiers.</p>

@@ -64,7 +64,7 @@ is ever printed in a prompt.
 |---|---|---|---|
 | exactly one `1` | an unbroken run of `1` reaching the last tier | `exact`, at that tier or at the narrowest of the run | the tier's price is held for the maker; the rest is sent back in the same transaction; the order is booked |
 | no `1` | no `1` | `outside` | the whole payment is sent back |
-| two or more `1` | never | `ambiguous` | the whole payment is sent back with one slice of the bond (a quarter of the bond the card was published with); the first two covering tiers are written on the card as a flag such as `1:2`; the card is frozen |
+| two or more `1` | never | `ambiguous` | the whole payment is sent back with one slice of the bond (a quarter of the bond the card was published with; a revised card keeps the slice of the card it replaced); the first two covering tiers are written on the card as a flag such as `1:2`; the card is frozen |
 | `?` | `?`, or any other shape | `unclear` | the whole payment is sent back; the brief is spent on that card |
 
 ## Who may do what
@@ -94,8 +94,9 @@ card that does not exist, and a text that fails the door.
 `contracts/fixtures/listing.py` is a small, separate contract bound to one Bracket address at deployment. A maker
 stakes 1 GEN or more to have a card featured, and the stake is accepted only from the address the register names
 as the maker and only while `standing(card)` says the card is clean. While the card carries no flag its maker may
-withdraw the stake. Once it carries a flag, anybody but its maker may eject it and is paid the stake. Its limit is
-stated in the file: a maker can race the public from a second address.
+withdraw the stake. Once it carries a flag, anybody but its maker may eject it and is paid the stake. Its limits:
+a maker can race the public from a second address (stated in the file), and closing or revising a featured card
+ends the stake's risk, because a closed card takes no briefs and so can never be flagged; it can only be withdrawn.
 
 ## The site
 

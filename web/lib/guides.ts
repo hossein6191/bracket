@@ -44,7 +44,7 @@ export const GUIDES: { href: string; match: (path: string) => boolean; guide: Gu
       title: "One order",
       what: "Everything about one brief that was asked: the words, which tiers covered them, where the money went, and what can still be done.",
       steps: [
-        ["Read the brief and the result", "The brief is stored exactly as it was sent, with the tier marks the validators agreed on."],
+        ["Read the brief and the result", "The brief is stored exactly as it was judged (plain punctuation, one line, single spaces), with the tier marks the validators agreed on."],
         ["Follow the money", "What was sent, what the tier costs, what came back, and anything paid from the maker's bond."],
         ["If you are the buyer", "While the order is booked you may cancel it and take the price back from escrow."],
         ["If you are the maker", "Accept a booked order to be paid from escrow, or decline it to send the price back."],
@@ -89,7 +89,7 @@ export const GUIDES: { href: string; match: (path: string) => boolean; guide: Gu
     guide: {
       key: "ledger",
       title: "Ledger",
-      what: "The public record: every order on every card, newest first, with the contract's own counters. Nothing here needs a wallet.",
+      what: "The public record: the newest orders on every card, newest first, with the contract's own counters. Nothing here needs a wallet.",
       steps: [
         ["Read the counters", "How many cards and orders there are, and how the outcomes divide."],
         ["Read the orders", "Each row is one brief: its card, its outcome, the price and the sentence the contract wrote."],

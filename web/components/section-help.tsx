@@ -105,7 +105,7 @@ const HELP: Record<string, Help> = {
   },
   "order-brief": {
     title: "The brief",
-    what: "The buyer's words, stored exactly as they were sent.",
+    what: "The buyer's words as the validators read them: typographic quotes and dashes made plain, line breaks and runs of spaces turned into single spaces.",
     steps: [
       "This is the text the validators read against the card.",
       "The fingerprint under it is how the contract knows the same brief was not asked twice.",
@@ -165,7 +165,7 @@ const HELP: Record<string, Help> = {
     what: "Money you put up against your own wording.",
     steps: [
       "At least 1 GEN, sent with the card.",
-      "If a brief is covered by two of your tiers, its buyer is paid a slice of it and the card freezes.",
+      "If a brief is covered by two of your tiers (on a card that is not a ladder), its buyer is paid a slice of it and the card freezes.",
       "A frozen card prices nothing until you publish a revised one, which keeps what is left of the bond.",
       "When you close a card, the bond that is left comes back to you.",
     ],
@@ -206,8 +206,8 @@ const HELP: Record<string, Help> = {
     ],
   },
   "ledger-orders": {
-    title: "Every order",
-    what: "The newest orders across all cards.",
+    title: "The newest orders",
+    what: "The newest orders across all cards, one page of them.",
     steps: [
       "Each row is one brief: its card, its outcome, the price and the contract's sentence.",
       "Use the filter to show one outcome only.",

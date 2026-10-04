@@ -11,7 +11,7 @@ import { ArrowRight, PenLine, Undo2, X } from "lucide-react";
 
 import { StandingBadge } from "@/components/bracket";
 import { CardForm } from "@/components/card-form";
-import { BlockSkeleton, ReadBlock } from "@/components/read-state";
+import { BlockSkeleton, ReadBlock, ReadError } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
 import { TxBlock } from "@/components/tx-block";
 import { Button } from "@/components/ui/button";
@@ -43,21 +43,32 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
   const t = target.data;
   const mine = !!t && !!me.address && t.maker === me.address;
   const revising = reviseId && t && mine && t.open ? t : null;
+  // The card a revision was sent for, as it was when sent. The form keeps it (and so keeps its
+  // key, its transaction and its result) after the refresh reads that card back closed, or when
+  // the wallet switches mid-call. Choosing another card or a new card lets it go.
+  const [held, setHeld] = React.useState<Card | null>(null);
+  const formCard = revising ?? (held && held.id === reviseId ? held : null);
+  // While the form's call runs, nothing else may swap the form out from under it.
+  const [formBusy, setFormBusy] = React.useState(false);
 
   const refresh = () => {
     invalidateReads();
     void cards.refresh();
     void target.refresh();
   };
-  const pick = (id: string) => {
+  const choose = (id: string) => {
     setPicked(id);
+    setHeld(null);
+  };
+  const pick = (id: string) => {
+    choose(id);
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8">
       <div ref={topRef} className="scroll-mt-24 space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">{revising ? `Revise ${revising.id}` : "Publish a card"}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{formCard ? `Revise ${formCard.id}` : "Publish a card"}</h1>
         <p className="text-muted-foreground">
           Write your price list once. After that every stranger&apos;s brief is priced from your words, without you being there, and
           you only accept or decline the orders that are booked.
@@ -66,11 +77,14 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
 
       <section className={cn(box, "space-y-5")} aria-labelledby="form-title">
         <h2 id="form-title" className="text-lg font-semibold">
-          {revising ? "The revised card" : "Your card"} <SectionHelp k="publish-form" />
+          {formCard ? "The revised card" : "Your card"} <SectionHelp k="publish-form" />
         </h2>
 
         {reviseId && target.loading ? (
           <BlockSkeleton lines={5} />
+        ) : reviseId && target.error && !t ? (
+          // A failed read is not a missing card: no form until it is known which card this is.
+          <ReadError compact onRetry={target.retry} detail={target.error} />
         ) : (
           <>
             {revising ? (
@@ -80,8 +94,14 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
                   {revising.frozen ? ", which is frozen. Reword the tiers that were caught overlapping." : "."} Publishing closes it and
                   opens a new card with the bond that is left.
                 </p>
-                <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={() => setPicked("")}>
+                <Button type="button" variant="outline" size="sm" className="shrink-0" disabled={formBusy} onClick={() => choose("")}>
                   <X /> Write a new card instead
+                </Button>
+              </div>
+            ) : formCard ? (
+              <div className="flex justify-end">
+                <Button type="button" variant="outline" size="sm" disabled={formBusy} onClick={() => choose("")}>
+                  <X /> Write a new card
                 </Button>
               </div>
             ) : reviseId && !target.loading ? (
@@ -95,7 +115,14 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
                       : `${reviseId} is already closed${t.revisedTo ? ` and replaced by ${t.revisedTo}` : ""}, so this form publishes a new card.`}
               </p>
             ) : null}
-            <CardForm key={revising ? revising.id : "new"} revising={revising} limits={limits} onDone={refresh} />
+            <CardForm
+              key={formCard ? formCard.id : "new"}
+              revising={formCard}
+              limits={limits}
+              onDone={refresh}
+              onSend={() => setHeld(revising)}
+              onBusy={setFormBusy}
+            />
           </>
         )}
       </section>
@@ -108,7 +135,12 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
           <p className="text-sm text-muted-foreground">Connect a wallet to see the cards it published. Reading the cards page needs no wallet.</p>
         ) : (
           <ReadBlock state={cards} skeleton={<BlockSkeleton lines={3} />}>
-            {(d) => <MyCards cards={d.rows.filter((c) => c.maker === me.address)} onRevise={pick} onDone={refresh} />}
+            {(d) => {
+              const own = d.rows.filter((c) => c.maker === me.address);
+              // The card named in ?revise= may be older than the 24 newest; it still needs its Close button.
+              const extra = t && mine && !own.some((c) => c.id === t.id) ? [t] : [];
+              return <MyCards cards={[...extra, ...own]} onRevise={pick} onDone={refresh} formBusy={formBusy} />;
+            }}
           </ReadBlock>
         )}
       </section>
@@ -116,7 +148,18 @@ export default function PublishPage({ searchParams }: { searchParams: Promise<{ 
   );
 }
 
-function MyCards({ cards, onRevise, onDone }: { cards: Card[]; onRevise: (id: string) => void; onDone: () => void }) {
+function MyCards({
+  cards,
+  onRevise,
+  onDone,
+  formBusy,
+}: {
+  cards: Card[];
+  onRevise: (id: string) => void;
+  onDone: () => void;
+  /** the form above is sending a call: loading another card into it would drop that call from the screen */
+  formBusy: boolean;
+}) {
   const me = useMe();
   const tx = useTx(() => onDone());
   const running = tx.sending || (!!tx.hash && !tx.final);
@@ -151,7 +194,9 @@ function MyCards({ cards, onRevise, onDone }: { cards: Card[]; onRevise: (id: st
             <p className="text-sm text-foreground/85">
               {!c.open
                 ? c.revisedTo
-                  ? `Closed and replaced by ${c.revisedTo}. Nothing is left to do on this card.`
+                  ? c.booked > 0
+                    ? `Closed and replaced by ${c.revisedTo}. Next: you. ${c.booked} booked ${c.booked === 1 ? "order still waits" : "orders still wait"} on this card for you to accept or decline, under Orders.`
+                    : `Closed and replaced by ${c.revisedTo}. Nothing is left to do on this card.`
                   : "Closed, and its bond was returned. Nothing is left to do on this card."
                 : c.frozen
                   ? "Frozen: a brief was covered by two of its tiers. Next: you. Revise it and it prices briefs again."
@@ -168,7 +213,7 @@ function MyCards({ cards, onRevise, onDone }: { cards: Card[]; onRevise: (id: st
             {c.open ? (
               <WalletGate action="revise or close this card">
                 <div className="flex flex-wrap items-center gap-3">
-                  <RetroButton type="button" variant={c.frozen ? "cyan" : "gray"} disabled={running} onClick={() => onRevise(c.id)}>
+                  <RetroButton type="button" variant={c.frozen ? "cyan" : "gray"} disabled={running || formBusy} onClick={() => onRevise(c.id)}>
                     <PenLine className="mr-1 inline size-3.5 align-[-2px]" /> Revise
                   </RetroButton>
                   <RetroButton

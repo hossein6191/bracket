@@ -16,7 +16,7 @@ import { ArrowRight, Check, Copy, ExternalLink, Loader2, Rocket, Undo2 } from "l
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TxRail } from "@/components/tx-rail";
-import { cleanWalletError } from "@/components/use-tx";
+import { cleanWalletError, succeeded } from "@/components/use-tx";
 import { useLocal } from "@/components/use-local";
 import { useMe } from "@/components/use-me";
 import { useGuideProgress } from "@/components/guide-progress";
@@ -77,6 +77,8 @@ export default function DeployPage() {
   // The deploy hash lives in local state; TxRail polls it like any other transaction.
   const [hash, setHash] = React.useState<string | null>(null);
   const [waitingAddress, setWaitingAddress] = React.useState(false);
+  /** the deploy finished without a usable contract: the button may be pressed again */
+  const [deployFailed, setDeployFailed] = React.useState(false);
   const [manual, setManual] = React.useState("");
   const [manualError, setManualError] = React.useState("");
   const [manualNote, setManualNote] = React.useState("");
@@ -115,7 +117,18 @@ export default function DeployPage() {
 
   const onDone = React.useCallback(
     async (s: TxStatus) => {
-      if (!hash || s.status === "CANCELED" || s.applied === false) return;
+      if (!hash) return;
+      // Studio writes the address on a deploy tx when it is sent, so a deploy that failed has one
+      // too: only a deploy that went through may become the contract this browser reads.
+      if (!succeeded(s)) {
+        setError(
+          s.undetermined || s.status === "CANCELED" || s.applied === false
+            ? "The deploy was not applied, so nothing was deployed. Press Deploy to try again."
+            : "The deploy finished but the contract did not load, so nothing usable was deployed and this browser keeps reading the contract it used before. Press Deploy to try again.",
+        );
+        setDeployFailed(true);
+        return;
+      }
       setWaitingAddress(true);
       try {
         // The address is on the transaction once the network accepted it.
@@ -144,6 +157,7 @@ export default function DeployPage() {
   const start = async () => {
     setError("");
     setBusy(true);
+    setDeployFailed(false);
     try {
       setHash(null);
       setHash(await deploy(code));
@@ -322,7 +336,7 @@ export default function DeployPage() {
           <li>For a minute or two after the deploy Studio may not find the new address yet; pages retry by themselves.</li>
         </ol>
         <WalletGate action="deploy">
-          <Button variant="cool" size="lg" disabled={!code || busy || !me.address || !!hash} onClick={() => void start()}>
+          <Button variant="cool" size="lg" disabled={!code || busy || !me.address || (!!hash && !deployFailed)} onClick={() => void start()}>
             <Rocket /> {busy ? "Waiting for your wallet" : "Deploy from my wallet"}
           </Button>
         </WalletGate>

@@ -62,7 +62,8 @@ export function YourRegisterNotice({ className }: { className?: string }): React
 
 export function RegisterLine() {
   // The server renders the site default; the browser re-reads once its own choice is known.
-  const contract = useLocal(() => contractAddress(), siteRegister());
+  // Mock mode reads and writes an in-memory copy, so it names no deployed contract at all.
+  const contract = useLocal(() => (isMock ? "" : contractAddress()), isMock ? "" : siteRegister());
 
   return (
     <>

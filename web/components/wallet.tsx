@@ -1,7 +1,7 @@
 "use client";
 
 // Wallet state for the whole site (EIP-6963 discovery, chain 61999 switching, faucet).
-// Pages use exactly this surface: WalletProvider, useWallet, WalletButton, WalletState.
+// Pages use exactly this surface: WalletProvider, useWallet, WalletButton, WrongChainBanner (in the header), WalletState.
 //
 // Rules this file keeps (each one cost an earlier site a bug report):
 // - every announced wallet is listed by name and icon; nothing is picked on the reader's behalf
@@ -480,7 +480,6 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <WalletContext.Provider value={value}>
-      <WrongChainBanner />
       {children}
       <Dialog open={pickerOpen} onOpenChange={(open) => setPickerOpen(open)}>
         <DialogContent>
@@ -544,14 +543,17 @@ export function useWallet(): WalletState {
   return React.useContext(WalletContext);
 }
 
-/** Shown while a wallet is connected on any chain other than Studio. Persistent on purpose. */
-function WrongChainBanner() {
+/**
+ * Shown while a wallet is connected on any chain other than Studio. Persistent on purpose: the
+ * site header renders it inside its own sticky bar, so scrolling never slides the header over it.
+ */
+export function WrongChainBanner() {
   const w = useWallet();
   if (!w.address || w.onStudio) return null;
   return (
     <div
       role="alert"
-      className="sticky top-0 z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-center text-sm text-amber-100"
+      className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-center text-sm text-amber-100"
     >
       <span>
         Your wallet is on <strong>{chainName(w.chainId)}</strong>. This site signs only on GenLayer
@@ -564,8 +566,11 @@ function WrongChainBanner() {
   );
 }
 
-/** Header button: shows "Connect wallet", or the short address + balance + a menu (switch chain, test GEN, disconnect). */
-export function WalletButton() {
+/**
+ * Header button: shows "Connect wallet", or the short address + balance + a menu (switch chain, test GEN, disconnect).
+ * `inHeader`: a connect error floats under the button instead of growing the fixed-height header row.
+ */
+export function WalletButton({ inHeader = false }: { inHeader?: boolean } = {}) {
   const w = useWallet();
   const [open, setOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
@@ -589,6 +594,22 @@ export function WalletButton() {
   }, [open]);
 
   if (!w.address) {
+    if (inHeader)
+      return (
+        <div className="relative flex items-center">
+          <Button variant="cool" size="sm" disabled={w.connecting} onClick={() => void w.connect()}>
+            {w.connecting ? "Connecting…" : "Connect wallet"}
+          </Button>
+          {w.error && (
+            <span
+              role="alert"
+              className="absolute top-full right-0 z-50 mt-1 w-max max-w-64 rounded-md border border-border bg-popover px-2 py-1 text-right text-xs text-rose-300 shadow-lg"
+            >
+              {w.error}
+            </span>
+          )}
+        </div>
+      );
     return (
       <div className="flex flex-col items-end gap-1">
         <Button variant="cool" size="sm" disabled={w.connecting} onClick={() => void w.connect()}>

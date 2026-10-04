@@ -28,6 +28,7 @@ export const PearlButton: React.FC<PearlButtonProps> = ({ label = "Pearl Button"
             0 3rem 3rem rgba(0, 0, 0, 0.3),
             0 1rem 1rem -0.6rem rgba(0, 0, 0, 0.8);
         }
+        .pearl-button:focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
         .pearl-button:disabled { opacity: 0.5; pointer-events: none; }
         .pearl-button .wrap {
           font-size: 25px;

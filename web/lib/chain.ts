@@ -103,13 +103,19 @@ const TYPOGRAPHIC: [string, string][] = [
 ];
 
 /**
+ * The characters Python's str.split() breaks on (str.isspace()), which is what the contract's tidy
+ * uses. JS \s differs: it also takes U+FEFF, and it misses \x1c-\x1f and \x85.
+ */
+export const PY_SPACE = /[\t\n\x0b\x0c\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/;
+
+/**
  * A text as the contract measures, stores and judges it: typographic quotes, dashes and the
  * ellipsis made plain, and every run of whitespace, line breaks included, turned into one space.
  */
 export function tidy(text: string): string {
   let t = String(text ?? "");
   for (const [fancy, plain] of TYPOGRAPHIC) t = t.split(fancy).join(plain);
-  return t.split(/\s+/).filter(Boolean).join(" ");
+  return t.split(PY_SPACE).filter(Boolean).join(" ");
 }
 
 /**
@@ -664,9 +670,16 @@ export type QuoteOutcome =
   | { kind: "refused"; reason: string; returnedAtto: string; order: string }
   | { kind: "unknown" };
 
+/**
+ * True when the leader's return is what the chain stored. A round with no majority, a cancelled
+ * tx or one the validators did not accept still carries the leader's JSON, but nothing of it was kept.
+ */
+const stored = (s: TxStatus | null): s is TxStatus => !!s && !s.undetermined && s.applied !== false && s.status !== "CANCELED";
+
 /** quote() answers in its JSON return: an order with its outcome, or a refusal that returned the payment. */
 export function quoteOutcome(s: TxStatus | null): QuoteOutcome {
-  const r = s?.result;
+  if (!stored(s)) return { kind: "unknown" };
+  const r = s.result;
   if (!r) return { kind: "unknown" };
   if (r.ok === true && outcomeOf(r.outcome)) return { kind: "result", order: mapOrder(r) };
   if (r.ok === false)
@@ -676,14 +689,16 @@ export function quoteOutcome(s: TxStatus | null): QuoteOutcome {
 
 /** publish_card's return: the card it created, or null (a refusal returns the bond sent). */
 export function publishedCard(s: TxStatus | null): { card: string; bondAtto: string; bondSliceAtto: string; topPriceAtto: string } | null {
-  const r = s?.result;
+  if (!stored(s)) return null;
+  const r = s.result;
   if (!r || r.ok !== true || !r.card) return null;
   return { card: str(r.card), bondAtto: atto(r.bond), bondSliceAtto: atto(r.bond_slice), topPriceAtto: atto(r.top_price) };
 }
 
 /** revise_card's return: the id of the NEW card, "" when the call did not make one. */
 export function revisedCard(s: TxStatus | null): string {
-  const r = s?.result;
+  if (!stored(s)) return "";
+  const r = s.result;
   if (!r || r.ok !== true) return "";
   return parseCardId(str(r.revised_to ?? r.new_card ?? r.card));
 }
@@ -740,7 +755,7 @@ export async function deploy(code: string): Promise<string> {
 /** The address a deploy transaction created; "" until the network has accepted it. */
 export async function deployedAddress(hash: string): Promise<string> {
   if (isMock) return mock.MOCK_REGISTER;
-  const tx = await withRetry(() => rpc<RawTx | null>("eth_getTransactionByHash", [hash]), { tries: 2, bucket: "eth" });
+  const tx = await withRetry(() => rpc<RawTx | null>("eth_getTransactionByHash", [hash]), { tries: 2, bucket: "eth", ownBudget: true });
   const data = tx?.data as { contract_address?: string } | undefined;
   return typeof data?.contract_address === "string" ? data.contract_address : "";
 }
@@ -749,15 +764,16 @@ export async function deployedAddress(hash: string): Promise<string> {
 export async function txStatus(hash: string): Promise<TxStatus> {
   if (isMock) return mock.txStatus(hash);
   // Two quick tries: the caller polls anyway, so a dropped request is just a later poll.
-  // eth_* has its own bucket, so a gen_call cooldown never stalls the rail.
-  const tx = await withRetry(() => rpc<RawTx | null>("eth_getTransactionByHash", [hash]), { tries: 2, bucket: "eth" });
+  // eth_* has its own bucket and its own retry budget, so neither a gen_call cooldown nor
+  // the gen_call retry loops queued for the shared slots ever stall the rail.
+  const tx = await withRetry(() => rpc<RawTx | null>("eth_getTransactionByHash", [hash]), { tries: 2, bucket: "eth", ownBudget: true });
   return decodeTx(tx);
 }
 
 /** Balance in atto of an address (eth_getBalance). */
 export async function balanceOf(address: string): Promise<bigint> {
   if (isMock) return mock.balanceOf(address);
-  const hex = await withRetry(() => rpc<string>("eth_getBalance", [address, "latest"]), { tries: 3, bucket: "eth" });
+  const hex = await withRetry(() => rpc<string>("eth_getBalance", [address, "latest"]), { tries: 3, bucket: "eth", ownBudget: true });
   return BigInt(hex || "0x0");
 }
 

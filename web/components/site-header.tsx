@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 
 import { Logo } from "@/components/brand/logo";
 import { MockPersona } from "@/components/mock-bar";
-import { WalletButton } from "@/components/wallet";
+import { WalletButton, WrongChainBanner } from "@/components/wallet";
 import { WelcomeButton } from "@/components/welcome";
 import { CHAIN_ID, isMock } from "@/lib/chain";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,8 @@ export function SiteHeader() {
   const pathname = usePathname();
   return (
     <header className="sticky top-0 z-40 border-b bg-[#111112]/85 backdrop-blur-md supports-[backdrop-filter]:bg-[#111112]/70">
+      {/* Inside the sticky header, so the header never slides over it once the page scrolls. */}
+      <WrongChainBanner />
       <div className="container-site flex flex-wrap items-center gap-x-6">
         <Link
           href="/"
@@ -100,7 +102,7 @@ export function SiteHeader() {
         <div className="order-2 ml-auto flex h-12 min-w-0 items-center gap-2 lg:order-3 lg:ml-0">
           <WelcomeButton />
           <NetworkBadge compact />
-          {isMock ? null : <WalletButton />}
+          {isMock ? null : <WalletButton inHeader />}
         </div>
       </div>
       {isMock ? <MockPersona /> : null}

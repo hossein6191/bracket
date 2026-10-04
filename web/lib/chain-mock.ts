@@ -132,11 +132,13 @@ const whole = (raw: unknown): bigint => {
 const TYPOGRAPHIC: [string, string][] = [
   ["\u2018", "'"], ["\u2019", "'"], ["\u201c", '"'], ["\u201d", '"'], ["\u2013", "-"], ["\u2014", "-"], ["\u2026", "..."], ["\u00a0", " "],
 ];
+/** What Python's str.split() breaks on (str.isspace()), as the contract does; JS \s also takes U+FEFF and misses \x1c-\x1f and \x85. */
+const PY_SPACE = /[\t\n\x0b\x0c\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+/;
 /** The text as it is measured, stored and judged: plain punctuation, single spaces, one line. */
 const tidy = (raw: unknown): string => {
   let t = String(raw);
   for (const [fancy, plain] of TYPOGRAPHIC) t = t.split(fancy).join(plain);
-  return t.split(/\s+/).filter(Boolean).join(" ");
+  return t.split(PY_SPACE).filter(Boolean).join(" ");
 };
 function textProblem(text: string, least: number, most: number, what: string): string {
   if (text.length < least || text.length > most) return `${what} is ${least} to ${most} characters; this one is ${text.length}`;

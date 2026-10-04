@@ -38,8 +38,16 @@ const box = "surface p-5 sm:p-6";
 const SHOWN = 12;
 const ONE_BY_ONE = 6;
 const MY_CARDS = 4;
+/** The most extra orders read one by one, past the newest, to find booked orders still waiting on the maker. */
+const HUNT = 15;
 
 type Mine = { bought: Order[]; boughtCount: number; sold: Order[]; soldCount: number; cards: Card[] };
+
+/** The first failed read among `results`, thrown, so the page shows the error and a retry rather than "nothing". */
+const throwFirstRejection = (results: PromiseSettledResult<unknown>[]) => {
+  const bad = results.find((r): r is PromiseRejectedResult => r.status === "rejected");
+  if (bad) throw bad.reason;
+};
 
 async function readMine(address: string): Promise<ReadResult<Mine>> {
   const [cards, boughtIds] = await Promise.all([readCards(), readOrdersBy(address)]);
@@ -49,24 +57,58 @@ async function readMine(address: string): Promise<ReadResult<Mine>> {
   } catch {
     /* without the ledger the orders are read one by one below */
   }
-  const myCards = cards.data.rows.filter((c) => c.maker === address).slice(0, MY_CARDS);
+  // The newest few cards, and every card that still holds a booked order, whatever its age.
+  const own = cards.data.rows.filter((c) => c.maker === address);
+  const myCards = own.filter((c, i) => i < MY_CARDS || c.booked > 0);
   const perCard = await readEach(myCards, (c) => readOrdersOf(c.id), 2);
+  throwFirstRejection(perCard);
   const soldIds = perCard
     .flatMap((r) => (r.status === "fulfilled" ? r.value.data : []))
     .sort((a, b) => idNumber(b) - idNumber(a));
+  const bookedOnMine = myCards.reduce((n, c) => n + c.booked, 0);
 
-  const resolve = async (ids: string[]): Promise<Order[]> => {
-    const wanted = ids.slice(0, SHOWN);
-    const missing = wanted.filter((id) => !known.has(id)).slice(0, ONE_BY_ONE);
-    const got = await readEach(missing, (id) => readOrder(id), 3);
+  const readMissing = async (ids: string[]) => {
+    const got = await readEach(
+      ids.filter((id) => !known.has(id)),
+      (id) => readOrder(id),
+      3,
+    );
+    throwFirstRejection(got);
     got.forEach((r) => {
       if (r.status === "fulfilled" && r.value.data) known.set(r.value.data.id, r.value.data);
     });
-    return wanted.flatMap((id) => (known.has(id) ? [known.get(id)!] : []));
   };
 
-  const bought = await resolve(boughtIds.data);
-  const sold = await resolve(soldIds);
+  // The newest SHOWN ids, then older ones only while booked orders are still unaccounted for
+  // (`booked`), so an order that waits on somebody never falls off the list.
+  const resolve = async (ids: string[], booked: number): Promise<Order[]> => {
+    const wanted = ids.slice(0, SHOWN);
+    await readMissing(wanted.filter((id) => !known.has(id)).slice(0, ONE_BY_ONE));
+    const out = wanted.flatMap((id) => (known.has(id) ? [known.get(id)!] : []));
+    const older = ids.slice(SHOWN);
+    // Older booked orders the ledger already carries cost nothing.
+    for (const id of older) if (known.get(id)?.status === "booked") out.push(known.get(id)!);
+    let found = out.filter((o) => o.status === "booked").length;
+    let budget = HUNT;
+    for (let i = 0; i < older.length && found < booked && budget > 0; ) {
+      const chunk: string[] = [];
+      for (; i < older.length && chunk.length < Math.min(ONE_BY_ONE, budget); i++) if (!known.has(older[i])) chunk.push(older[i]);
+      if (chunk.length === 0) break;
+      budget -= chunk.length;
+      await readMissing(chunk);
+      for (const id of chunk) {
+        const o = known.get(id);
+        if (o?.status === "booked") {
+          out.push(o);
+          found++;
+        }
+      }
+    }
+    return out;
+  };
+
+  const bought = await resolve(boughtIds.data, 0);
+  const sold = await resolve(soldIds, bookedOnMine);
   return { data: { bought, boughtCount: boughtIds.data.length, sold, soldCount: soldIds.length, cards: myCards }, source: cards.source };
 }
 
@@ -106,7 +148,7 @@ export default function OrdersPage() {
           <p className="font-medium">Connect a wallet to list its orders.</p>
           <p className="text-muted-foreground">
             This page lists by address, so it needs to know yours. Nothing is signed by connecting, and it takes a few seconds. The
-            ledger shows every order with no wallet at all.
+            ledger shows the newest orders with no wallet at all.
           </p>
           <div className="flex flex-wrap items-center gap-3">
             {isMock ? null : <WalletButton />}
@@ -152,13 +194,14 @@ export default function OrdersPage() {
                 ) : (
                   <>
                     <ul className="grid gap-2">
-                      {d.bought.map((o) => (
+                      {[...d.bought.filter((o) => o.status === "booked"), ...d.bought.filter((o) => o.status !== "booked")].map((o) => (
                         <OrderRow key={o.id} order={o} role={o.status === "booked" ? "you may cancel" : undefined} />
                       ))}
                     </ul>
                     {d.boughtCount > d.bought.length ? (
                       <p className="text-xs text-muted-foreground">
-                        Showing {d.bought.length} of your last {d.boughtCount} orders. The ledger has the rest.
+                        Showing {d.bought.length} of your last {d.boughtCount} orders. Older ones are not listed here; open one by its number, at
+                        /order/O&lt;number&gt;.
                       </p>
                     ) : null}
                   </>
@@ -208,7 +251,8 @@ export default function OrdersPage() {
                     )}
                     {d.soldCount > d.sold.length ? (
                       <p className="text-xs text-muted-foreground">
-                        Showing {d.sold.length} of {d.soldCount} orders on your cards. Each card&apos;s page and the ledger have the rest.
+                        Showing {d.sold.length} of {d.soldCount} orders on your cards, booked ones first. Older ones are not listed here; open
+                        one by its number, at /order/O&lt;number&gt;.
                       </p>
                     ) : null}
                   </>

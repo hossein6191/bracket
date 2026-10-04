@@ -242,8 +242,15 @@ export default function KineticGrid({
       const t = targetMouseRef.current;
       m.x = lerpN(m.x, t.x, LERP_SPEED);
       m.y = lerpN(m.y, t.y, LERP_SPEED);
+      // Once the pointer has settled and every ripple has faded nothing moves: draw this last
+      // frame and stop, until a mouse move, a click or a resize wakes the loop again.
+      const settled = Math.abs(m.x - t.x) < 0.5 && Math.abs(m.y - t.y) < 0.5;
+      if (settled) {
+        m.x = t.x;
+        m.y = t.y;
+      }
       draw(now);
-      rafRef.current = requestAnimationFrame(animate);
+      rafRef.current = settled && ripplesRef.current.length === 0 ? 0 : requestAnimationFrame(animate);
     },
     [draw],
   );
@@ -253,6 +260,9 @@ export default function KineticGrid({
     if (!canvas) return;
     // A visitor who asks for reduced motion gets the grid standing still.
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const wake = () => {
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(animate);
+    };
 
     const setSize = () => {
       const w = window.innerWidth;
@@ -260,7 +270,9 @@ export default function KineticGrid({
       canvas.width = w;
       canvas.height = h;
       sizeRef.current = { w, h };
+      // Resizing clears the canvas, so it is drawn again either way.
       if (still) draw(performance.now());
+      else wake();
     };
 
     setSize();
@@ -269,20 +281,23 @@ export default function KineticGrid({
 
     const onMouseMove = (e: MouseEvent) => {
       targetMouseRef.current = { x: e.clientX, y: e.clientY };
+      wake();
     };
     const onClick = (e: MouseEvent) => {
       ripplesRef.current.push({ x: e.clientX, y: e.clientY, radius: 0, opacity: 1, born: performance.now() });
+      wake();
     };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("click", onClick);
-    rafRef.current = requestAnimationFrame(animate);
+    wake();
 
     return () => {
       window.removeEventListener("resize", setSize);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("click", onClick);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
     };
   }, [animate, draw]);
 

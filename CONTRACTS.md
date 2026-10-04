@@ -144,5 +144,5 @@ Deployed with one argument, the Bracket address. Deployment fails if that addres
 | `withdraw(card)` | the maker who staked it | the stake goes back, while the card carries no flag |
 | `eject(card)` | anybody but that maker | allowed once the card carries a flag; the stake is paid to the caller |
 | `entry(card)` view | | `{card, maker, stake, state, to, why}` with `state` `featured`, `withdrawn` or `ejected` |
-| `shelf()` view | | the ids featured now, newest first |
+| `shelf()` view | | the ids staked here and not yet withdrawn or ejected, newest first. A card its maker closes or revises on the register stays listed until the maker withdraws: a closed card takes no briefs, so it can never be flagged |
 | `terms()` view | | the bound register and the rule in words |

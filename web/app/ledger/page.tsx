@@ -37,7 +37,7 @@ export default function LedgerPage() {
       <div className="space-y-1">
         <h1 className="text-3xl font-bold tracking-tight">Ledger</h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Every brief anybody asked, on every card. A brief the card covered twice is published exactly like one that was priced:
+          The newest briefs asked, on every card. A brief the card covered twice is published exactly like one that was priced:
           with the tier marks the validators agreed on and the sentence the contract wrote. No wallet is needed to read any of
           this.
         </p>
@@ -69,7 +69,7 @@ export default function LedgerPage() {
       <section className={cn(box, "space-y-4")} aria-labelledby="orders-title">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <h2 id="orders-title" className="text-lg font-semibold">
-            Every order, newest first <SectionHelp k="ledger-orders" />
+            The newest orders <SectionHelp k="ledger-orders" />
           </h2>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Which outcomes to show">
             {FILTERS.map((f) => (
@@ -111,8 +111,8 @@ export default function LedgerPage() {
                   </ul>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  The {rows.length === 1 ? "newest order" : `${rows.length} newest orders`}. The contract lists one page here; older orders are on
-                  each card&apos;s page.
+                  The {rows.length === 1 ? "newest order" : `${rows.length} newest orders`}. The contract lists one page here; an older order opens by its
+                  number, at /order/O&lt;number&gt;.
                 </p>
               </div>
             );

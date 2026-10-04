@@ -21,16 +21,26 @@ export function outcomeLabel(o: Outcome): string {
   }
 }
 
-/** What the outcome means for the buyer's money, in one plain sentence. */
-export function outcomeMeaning(o: Outcome): string {
+/**
+ * What the outcome means for the buyer's money, in one plain sentence. `mask` is the order's tier
+ * marks: a ladder card books several covering tiers at the narrowest, and calls a mask that is not
+ * an unbroken run unclear; a card that is not a ladder has one "1" when exact and "?" when unclear.
+ */
+export function outcomeMeaning(o: Outcome, mask = ""): string {
   switch (o) {
     case "exact":
+      if (mask.split("1").length > 2)
+        return "Several nested tiers of this ladder card cover the whole brief, and the narrowest of them sets the price. Its price stays in escrow for the maker and the rest of what you sent came straight back.";
       return "One tier covers the whole brief. Its price stays in escrow for the maker and the rest of what you sent came straight back.";
     case "outside":
       return "No tier covers the whole brief, so the card has no price for it and everything you sent came back.";
     case "ambiguous":
       return "Two tiers of a card that promised no overlap both cover the brief. Everything you sent came back, the maker's bond paid you a slice on top, and the card is frozen until its maker revises it.";
     case "unclear":
+      if (mask === "?")
+        return "The two readings of the brief, made with the tiers in two different orders, named different tiers, so no price was fixed and everything you sent came back. The same brief cannot be asked again on this card.";
+      if (mask)
+        return "The tiers read as covering the brief are not an unbroken run up to the broadest tier, which a ladder card promises, so no price was fixed and everything you sent came back. The same brief cannot be asked again on this card.";
       return "The validators could not settle which tiers cover the brief, so no price was fixed and everything you sent came back. The same brief cannot be asked again on this card.";
     default:
       return "";

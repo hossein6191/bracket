@@ -76,6 +76,11 @@ pays again if it is not.
 An address is free, so this binds a maker's address and not a person. A consumer that cares reads `maker` and
 `past_flags` from `standing(card)`.
 
+Both checks compare a digest of the ladder flag and the tiers, joined with `|` and `||`. A tier may itself contain
+`|`, so a maker who writes those separators into their own tiers can make two different cards share a digest and
+have their own revision refused as unchanged. Only the maker's own card is affected; quoting, the bond and the
+escrow never read this digest.
+
 ## The ladder flag is self-declared, so it has a structural cost
 
 A maker who declares a ladder is never charged for overlap. If that cost nothing, every maker would declare one.

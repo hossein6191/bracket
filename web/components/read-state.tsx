@@ -175,20 +175,35 @@ export function ReadBlock<T>({
   emptyWhen,
   empty,
 }: {
-  state: { data: T | null; loading: boolean; error: string; retry: () => void };
+  state: { data: T | null; loading: boolean; error: string; retry: () => void; refresh?: () => Promise<void> };
   skeleton: React.ReactNode;
   children: (data: T) => React.ReactNode;
   /** when the read succeeded but there is nothing to show (a real empty list) */
   emptyWhen?: (data: T) => boolean;
   empty?: React.ReactNode;
 }) {
+  // A failed re-read under data still on screen retries with refresh(), which keeps that data
+  // (and whatever the children hold, such as a finished transaction); retry() would clear it.
+  // The banner remounts once that re-read has settled, so a second rate limit starts a new
+  // countdown (and a countdown never fires again while its own re-read is still running).
+  const [attempt, setAttempt] = React.useState(0);
   if (state.loading && state.data === null) return <>{skeleton}</>;
   if (state.error && state.data === null) return <ReadError onRetry={state.retry} detail={state.error} />;
   // The read finished and answered null (an id that does not exist): that is the empty state, not a skeleton.
   if (state.data === null) return <>{empty ?? skeleton}</>;
   return (
     <div className="space-y-3">
-      {state.error ? <ReadError onRetry={state.retry} detail={state.error} compact /> : null}
+      {state.error ? (
+        <ReadError
+          key={attempt}
+          compact
+          detail={state.error}
+          onRetry={() => {
+            if (state.refresh) void state.refresh().finally(() => setAttempt((n) => n + 1));
+            else state.retry();
+          }}
+        />
+      ) : null}
       {emptyWhen && emptyWhen(state.data) ? empty : children(state.data)}
     </div>
   );

@@ -48,7 +48,7 @@ export function SiteFooter() {
           <ul className="space-y-1 text-xs">
             <li>
               <Link href="/ledger" className="underline-offset-4 hover:underline">
-                Every order and every outcome
+                The newest orders and their outcomes
               </Link>
             </li>
             <li>

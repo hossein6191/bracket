@@ -53,12 +53,32 @@ const same = (a: string, b: string) => tidy(a).toLowerCase() === tidy(b).toLower
 const field = "space-y-1.5";
 const hint = "text-xs text-muted-foreground";
 
-export function CardForm({ revising, limits, onDone }: { revising: Card | null; limits: Limits; onDone: () => void }) {
+/**
+ * `onSend` is called as the call goes to the wallet, and `onBusy` whenever a call starts or
+ * stops running, so the page can keep this form (and its transaction) on screen meanwhile.
+ */
+export function CardForm({
+  revising,
+  limits,
+  onDone,
+  onSend,
+  onBusy,
+}: {
+  revising: Card | null;
+  limits: Limits;
+  onDone: () => void;
+  onSend?: () => void;
+  onBusy?: (busy: boolean) => void;
+}) {
   const me = useMe();
   const [draft, setDraft] = React.useState<Draft>(() => (revising ? fromCard(revising) : BLANK));
   const [note, setNote] = React.useState("");
   const tx = useTx(() => onDone());
   const running = tx.sending || (!!tx.hash && !tx.final);
+  React.useEffect(() => {
+    onBusy?.(running);
+    return () => onBusy?.(false);
+  }, [running, onBusy]);
 
   const set = (patch: Partial<Draft>) => setDraft((d) => ({ ...d, ...patch }));
   const setTier = (i: number, patch: Partial<Row>) => setDraft((d) => ({ ...d, tiers: d.tiers.map((t, k) => (k === i ? { ...t, ...patch } : t)) }));
@@ -100,10 +120,19 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
 
   const send = () => {
     setNote("");
+    onSend?.();
     void tx.start(revising ? calls.reviseCard(revising.id, draft.title, tiers, draft.ladder) : calls.publishCard(draft.title, tiers, draft.ladder, bond ?? 0n));
   };
 
   const made = revising ? revisedCard(tx.final) : (publishedCard(tx.final)?.card ?? "");
+  // What the card that was made promises, from the call that made it (the form stays editable afterwards).
+  const madeLadder = tx.call ? tx.call.args[revising ? 3 : 2] === "1" : draft.ladder;
+  const madeSlice = revising ? revising.bondSliceAtto : (publishedCard(tx.final)?.bondSliceAtto ?? "0");
+  const another = () => {
+    tx.reset();
+    setDraft(BLANK);
+    setNote("");
+  };
   // The stepper above follows the form: example, tiers, how they relate, bond, publish, look after it.
   const typed = !!draft.title || draft.tiers.some((t) => t.text || t.price);
   const tiersReady = !titleProblem && tierProblems.every((p) => !p);
@@ -117,6 +146,8 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
           options={EXAMPLE_CARDS.map((e) => ({ label: e.who, value: e }))}
           disabled={running}
           onPick={(e) => {
+            // A second card after one was published: the finished call leaves the screen.
+            if (made && !revising) tx.reset();
             setDraft((d) => ({ ...fromExample(e), bond: revising ? d.bond : e.bond }));
             setNote(e.note);
           }}
@@ -289,15 +320,15 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
                   ? "The validators are checking the call"
                   : revising
                     ? `Publish the revision of ${revising.id}`
-                    : `Publish the card · send ${bond !== null ? gen(bond) : "the bond"}`
+                    : `Publish the card · send ${bond !== null ? `${genText(bond)} GEN` : "the bond"}`
             }
           />
-          {problems.length > 0 && (draft.title || draft.tiers.some((t) => t.text || t.price)) ? (
+          {problems.length > 0 && !made && (draft.title || draft.tiers.some((t) => t.text || t.price)) ? (
             <p className="text-xs text-gold">Before this can be sent: {problems[0]}</p>
           ) : null}
           {short ? (
             <p className="text-xs text-gold">
-              This wallet holds {gen(me.balanceAtto)} and the bond is {gen(bond ?? 0n)}.{" "}
+              This wallet holds {genText(me.balanceAtto)} GEN and the bond is {genText(bond ?? 0n)} GEN.{" "}
               {isMock ? "Press Get 10 test GEN in the demo bar at the top." : "The wallet menu at the top right has a button that gets 10 test GEN."}
             </p>
           ) : null}
@@ -310,7 +341,12 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
           <p className="font-medium">
             {revising ? `${revising.id} is closed and replaced by ${made}.` : `Published as ${made}. It is live and anybody can ask it for a price.`}
           </p>
-          <MakerNextSteps card={made} />
+          <MakerNextSteps card={made} ladder={madeLadder} sliceAtto={madeSlice} />
+          {revising ? null : (
+            <Button type="button" variant="outline" size="sm" onClick={another}>
+              <Plus /> Publish another card
+            </Button>
+          )}
         </div>
       ) : null}
     </div>

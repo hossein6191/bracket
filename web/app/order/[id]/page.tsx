@@ -22,7 +22,8 @@ import { useRead } from "@/components/use-read";
 import { succeeded, useTx } from "@/components/use-tx";
 import { useGuideProgress } from "@/components/guide-progress";
 import { WalletGate } from "@/components/wallet-gate";
-import { calls, cardPath, invalidateReads, parseOrderId, readCard, readOrder, type Call, type Card, type Order, txUrl } from "@/lib/chain";
+import { calls, cardPath, contractAddress, invalidateReads, parseOrderId, readCard, readOrder, type Call, type Card, type Order, txUrl } from "@/lib/chain";
+import { siteRegister } from "@/lib/register";
 import { gen, orderName, when } from "@/lib/format";
 import { nextMove, outcomeMeaning, viewerOf } from "@/lib/words";
 import { cn } from "@/lib/utils";
@@ -40,7 +41,7 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
         <h1 className="text-3xl font-bold tracking-tight">Order</h1>
         <div className={cn(box, "space-y-3 text-sm")}>
           <p className="font-medium">That is not an order id.</p>
-          <p className="text-muted-foreground">An order is named by an O and its number, like O7. The ledger lists every one.</p>
+          <p className="text-muted-foreground">An order is named by an O and its number, like O7. The ledger lists the newest ones.</p>
           <LiquidButton asChild size="sm" className="text-foreground">
             <Link href="/ledger">
               <span className="relative z-10 inline-flex items-center gap-1.5">
@@ -55,9 +56,12 @@ export default function OrderPage({ params }: { params: Promise<{ id: string }> 
 }
 
 function OrderView({ id }: { id: string }) {
-  const order = useRead(() => readOrder(id), [id]);
+  // The contract this browser writes to: when another tab picks another one on /deploy, the
+  // order is read again from it, so the buttons never act on a contract other than the one shown.
+  const register = useLocal(contractAddress, siteRegister());
+  const order = useRead(() => readOrder(id), [id, register]);
   const o = order.data;
-  const card = useRead(() => readCard(o?.card ?? ""), [o?.card ?? ""], { enabled: !!o?.card });
+  const card = useRead(() => readCard(o?.card ?? ""), [o?.card ?? "", register], { enabled: !!o?.card });
 
   const refresh = () => {
     invalidateReads();
@@ -76,7 +80,7 @@ function OrderView({ id }: { id: string }) {
         empty={
           <div className={cn(box, "space-y-3 text-sm")}>
             <p className="font-medium">There is no order {id} on this contract.</p>
-            <p className="text-muted-foreground">Orders are numbered in the order they were asked. The ledger lists the ones that exist.</p>
+            <p className="text-muted-foreground">Orders are numbered in the order they were asked. The ledger lists the newest ones.</p>
             <LiquidButton asChild size="sm" className="text-foreground">
               <Link href="/ledger">
                 <span className="relative z-10 inline-flex items-center gap-1.5">
@@ -153,7 +157,7 @@ function OrderBody({ order: o, card: c, cardLoading, onDone }: { order: Order; c
           </h2>
           <p className="text-sm text-foreground/90">
             {o.outcome === "exact" ? `Tier ${o.tier} sets the price: ${gen(o.priceAtto)}. ` : ""}
-            {outcomeMeaning(o.outcome).replace(/\byou sent\b/g, "the buyer sent").replace(/\bpaid you\b/g, "paid the buyer")}
+            {outcomeMeaning(o.outcome, o.mask).replace(/\byou sent\b/g, "the buyer sent").replace(/\bpaid you\b/g, "paid the buyer")}
           </p>
           {o.mask === "?" ? (
             <p className="text-xs text-muted-foreground">Stored value: a question mark. The two askings did not name the same tiers.</p>

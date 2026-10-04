@@ -9,8 +9,10 @@ import { Check, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cardPath } from "@/lib/chain";
+import { gen } from "@/lib/format";
 
-export function MakerNextSteps({ card }: { card: string }) {
+/** `ladder` and `sliceAtto` are the card's: a ladder card never pays out its bond, and the slice is what one overlap pays. */
+export function MakerNextSteps({ card, ladder, sliceAtto }: { card: string; ladder: boolean; sliceAtto: string }) {
   const [copied, setCopied] = React.useState(false);
   const copy = async () => {
     try {
@@ -49,10 +51,15 @@ export function MakerNextSteps({ card }: { card: string }) {
         . Accept takes the price; Decline sends it back. The buyer may cancel until you decide.
       </>,
     ],
-    [
-      "If a brief fits two tiers",
-      "Your card overlapped: the buyer gets a quarter of your bond and the card freezes. Revise it on the Publish page with tiers that do not overlap.",
-    ],
+    ladder
+      ? [
+          "If a brief fits several tiers",
+          "It is booked at the narrowest of them. On a ladder card the bond never pays out and the card never freezes.",
+        ]
+      : [
+          "If a brief fits two tiers",
+          `Your card overlapped: the buyer is paid ${gen(sliceAtto)} from your bond and the card freezes. Revise it on the Publish page with tiers that do not overlap.`,
+        ],
   ];
   return (
     <div className="space-y-3">
