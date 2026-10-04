@@ -14,6 +14,7 @@ import { ContractLine, FlagLine, LadderBadge, MoneyRow, OrderRow, OutcomeBadge, 
 import { BlockSkeleton, ReadBlock, readEach } from "@/components/read-state";
 import { SectionHelp } from "@/components/section-help";
 import { Suggest } from "@/components/suggest";
+import { MakerNextSteps } from "@/components/next-steps";
 import { TxBlock } from "@/components/tx-block";
 import { Button } from "@/components/ui/button";
 import { EncryptButton } from "@/components/ui/encrypt-button";
@@ -265,6 +266,7 @@ function Blocked({ card: c, isMaker }: { card: Card; isMaker: boolean }) {
             : "No order is booked on it now, so nothing is needed from you."}{" "}
           The Publish page revises or closes it.
         </p>
+        <MakerNextSteps card={c.id} />
         <div className="flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
             <Link href="/orders">Orders on your cards</Link>

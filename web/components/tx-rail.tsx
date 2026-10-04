@@ -113,9 +113,9 @@ export function TxRail({ hash, label, onDone, showVotes, className }: TxRailProp
           href={txUrl(hash)}
           target="_blank"
           rel="noreferrer"
-          className="font-mono text-xs text-muted-foreground underline-offset-4 hover:underline"
+          className="inline-flex items-center gap-1.5 rounded-md border border-primary/40 bg-primary/10 px-2.5 py-1 font-mono text-xs text-primary transition-colors hover:bg-primary/20"
         >
-          {hash.slice(0, 10)}…{hash.slice(-6)} · explorer
+          View the transaction · {hash.slice(0, 10)}…{hash.slice(-6)} ↗
         </a>
       </div>
 

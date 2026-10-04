@@ -79,6 +79,21 @@ export const TRANSLATOR: ExampleCard = {
         "Can you translate some things for me soon? There are a few texts, I am not sure how long they are yet, and one of them might be urgent.",
       covers: "?",
     },
+    {
+      label: "A 900-word article, no rush",
+      brief: "Please translate my 900-word blog article about urban cycling from English into Spanish. I need it in about two weeks.",
+      covers: [2],
+    },
+    {
+      label: "A wedding speech by tonight",
+      brief: "I need my 400-word wedding speech translated from English to Spanish by tonight, in eight hours.",
+      covers: [4],
+    },
+    {
+      label: "A website of 40 pages (outside the card)",
+      brief: "Translate our whole online shop into Spanish: about 40 pages and 25,000 words, plus every product description.",
+      covers: [],
+    },
   ],
 };
 
@@ -119,6 +134,21 @@ export const COPYWRITER: ExampleCard = {
         "Write the text of a twelve-page printed brochure for a furniture trade fair, about 5,000 words, with captions for forty product photographs.",
       covers: [],
     },
+    {
+      label: "A product description",
+      brief: "Write the copy for one product page: a stainless steel water bottle, with a headline and three short sections.",
+      covers: [1, 2],
+    },
+    {
+      label: "Three welcome emails",
+      brief: "Write a series of three welcome emails for new subscribers to our cooking newsletter.",
+      covers: [3],
+    },
+    {
+      label: "A radio advert (outside the card)",
+      brief: "Write and record a 30-second radio advert for our bakery.",
+      covers: [],
+    },
   ],
 };
 
@@ -156,6 +186,21 @@ export const TUTOR: ExampleCard = {
       brief: "I am a second-year university student and need help with a statistics course: hypothesis testing and regression, six sessions.",
       covers: [],
     },
+    {
+      label: "Two lessons before an exam",
+      brief: "My son has his algebra exam in ten days. Could he have two 45-minute online lessons on simultaneous equations?",
+      covers: [2, 3],
+    },
+    {
+      label: "A weekly lesson all term",
+      brief: "Please give my daughter one 45-minute online algebra lesson every week this term, eleven in all, and mark her homework.",
+      covers: [3],
+    },
+    {
+      label: "A vague request",
+      brief: "Can you help my kid with maths sometime?",
+      covers: "?",
+    },
   ],
 };
 
@@ -190,6 +235,16 @@ export const ILLUSTRATOR: ExampleCard = {
     {
       label: "An animated logo (outside the card)",
       brief: "Please animate our company logo as a five-second video to play at the start of our webinars.",
+      covers: [],
+    },
+    {
+      label: "Three spot drawings",
+      brief: "I need three small black and white drawings to open three chapters of a cookbook.",
+      covers: [1],
+    },
+    {
+      label: "A children's book (outside the card)",
+      brief: "Illustrate a whole 32-page picture book for children, every page in full colour.",
       covers: [],
     },
   ],
@@ -257,11 +312,81 @@ export const COPY_EDITOR: ExampleCard = {
       brief: "Write a new 1,200-word article about electric buses for our newsletter from my bullet points.",
       covers: [],
     },
+    {
+      label: "Fix the grammar in a cover letter",
+      brief: "Please check the grammar and punctuation of my one-page cover letter. Do not rewrite it.",
+      covers: [1, 2, 3],
+    },
+    {
+      label: "Translate a report (outside the card)",
+      brief: "Translate our 3,000-word report from English into German.",
+      covers: [],
+    },
+  ],
+};
+
+export const PHOTOGRAPHER: ExampleCard = {
+  key: "photographer",
+  who: "A photographer",
+  title: "Portrait and event photography",
+  ladder: false,
+  bond: "1",
+  note: "Three tiers by length of the shoot, meant not to overlap.",
+  tiers: [
+    { text: "A portrait session of up to one hour at one location, with 10 edited photos delivered within a week.", price: "0.8" },
+    { text: "A half-day shoot of two to four hours, such as a small event or a product set, with 40 edited photos.", price: "2" },
+    { text: "A full-day shoot of five to ten hours, such as a wedding or a conference, with 150 edited photos.", price: "4.5" },
+  ],
+  briefs: [
+    { label: "A headshot for LinkedIn", brief: "I need a 30-minute headshot session in a park near my office and five or so good edited photos.", covers: [1] },
+    { label: "A three-hour birthday party", brief: "Please photograph my mother's 70th birthday party, about three hours on a Saturday afternoon.", covers: [2] },
+    { label: "A whole wedding day", brief: "We need our wedding photographed from the morning preparations to the first dance, about nine hours.", covers: [3] },
+    { label: "A drone video (outside the card)", brief: "Film our farm from the air with a drone and edit a two-minute video.", covers: [] },
+  ],
+};
+
+export const DEVELOPER: ExampleCard = {
+  key: "developer",
+  who: "A web developer",
+  title: "Small website builds",
+  ladder: true,
+  bond: "2",
+  note: "A ladder: each tier contains the one before it, so a brief is priced at the narrowest tier that covers it.",
+  tiers: [
+    { text: "A one-page website from your text and photos, mobile friendly, with a contact form.", price: "1" },
+    { text: "A website of up to five pages from your text and photos, mobile friendly, with a contact form and a simple blog.", price: "2.5" },
+    { text: "A website of up to fifteen pages, mobile friendly, with a blog, a booking calendar and a small online shop of up to 20 products.", price: "6" },
+  ],
+  briefs: [
+    { label: "A single landing page", brief: "Build me a one-page site for my yoga classes, with the timetable and a contact form. I will send the text and photos.", covers: [1, 2, 3] },
+    { label: "A four-page site with a blog", brief: "I need a four-page website for my plumbing business, with a blog for tips, built from my own words and photos.", covers: [2, 3] },
+    { label: "A shop of 12 products", brief: "Make a ten-page website for my ceramics studio, with a booking calendar for classes and a shop for 12 pieces.", covers: [3] },
+    { label: "A mobile app (outside the card)", brief: "Build an iPhone and Android app for ordering from my café.", covers: [] },
+  ],
+};
+
+export const VOICE: ExampleCard = {
+  key: "voice",
+  who: "A voice-over artist",
+  title: "English voice-over recording",
+  ladder: false,
+  bond: "1",
+  note: "Three tiers by the length of the finished audio, meant not to overlap.",
+  tiers: [
+    { text: "A recorded English voice-over of up to 60 seconds of finished audio, such as an advert or a voicemail greeting.", price: "0.6" },
+    { text: "A recorded English voice-over of one to ten minutes of finished audio, such as an explainer video or a course lesson.", price: "1.8" },
+    { text: "A recorded English voice-over of ten to sixty minutes of finished audio, such as an audiobook chapter or a training course.", price: "5" },
+  ],
+  briefs: [
+    { label: "A 30-second advert", brief: "Record a 30-second voice-over for our coffee shop's online advert, warm and friendly.", covers: [1] },
+    { label: "A five-minute explainer", brief: "We need a five-minute voice-over for an explainer video about our budgeting app.", covers: [2] },
+    { label: "A 40-minute audiobook chapter", brief: "Please record chapter one of my novel, about 40 minutes of finished audio.", covers: [3] },
+    { label: "Singing a jingle (outside the card)", brief: "Sing and record a 15-second jingle for our radio advert.", covers: [] },
   ],
 };
 
 /** The cards the publish page offers as starting points. */
-export const EXAMPLE_CARDS: ExampleCard[] = [TRANSLATOR, ILLUSTRATOR, TUTOR, COPY_EDITOR, COPYWRITER];
+export const EXAMPLE_CARDS: ExampleCard[] = [TRANSLATOR, ILLUSTRATOR, TUTOR, COPY_EDITOR, COPYWRITER, PHOTOGRAPHER, DEVELOPER, VOICE];
 
 /** Every card that carries briefs, the demo-only one included. */
 const ALL_CARDS: ExampleCard[] = [...EXAMPLE_CARDS, ILLUSTRATOR_FLAWED];
@@ -277,15 +402,27 @@ export function exampleFor(tierTexts: string[]): ExampleCard | null {
 /** A brief that asks for exactly what one tier says, for a card no example matches. */
 const askFor = (text: string) => `I need exactly this, nothing more and nothing less: ${text}`.slice(0, 1200);
 
-/** The briefs to offer under the box on one card's page: the example's own, else one per tier and one outside. */
+/** The briefs to offer under the box on one card's page: the example's own, else a set built from the card's tiers. */
 export function briefsFor(tierTexts: string[]): { label: string; value: string }[] {
   const found = exampleFor(tierTexts);
   if (found) return found.briefs.map((b) => ({ label: b.label, value: b.brief }));
-  return [
-    ...tierTexts.slice(0, 4).map((text, i) => ({ label: `Ask for tier ${i + 1}`, value: askFor(text) })),
+  const n = Math.min(tierTexts.length, 4);
+  const out = tierTexts.slice(0, 4).map((text, i) => ({ label: `Ask for tier ${i + 1}`, value: askFor(text) }));
+  if (n >= 2)
+    out.push({
+      label: "Tiers 1 and 2 at once",
+      value: `I need two things together: ${tierTexts[0]} And also: ${tierTexts[1]}`.slice(0, 1200),
+    });
+  out.push(
+    {
+      label: "More than the dearest tier",
+      value: `I need ten times what your largest offer covers: ${tierTexts[n - 1]} Ten of these, all at once.`.slice(0, 1200),
+    },
     {
       label: "Something outside the card",
       value: "I need a three-tier wedding cake for 120 guests, lemon and elderflower, delivered on a Saturday in June.",
     },
-  ];
+    { label: "A vague request", value: "Can you help me with something soon? I am not sure yet how big it is." },
+  );
+  return out;
 }

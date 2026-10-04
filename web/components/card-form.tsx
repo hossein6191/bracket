@@ -6,11 +6,11 @@
 // cards fill it in one press, and everything stays editable afterwards.
 
 import * as React from "react";
-import Link from "next/link";
-import { ArrowRight, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 
 import { SectionHelp } from "@/components/section-help";
 import { Suggest } from "@/components/suggest";
+import { MakerNextSteps } from "@/components/next-steps";
 import { TxBlock } from "@/components/tx-block";
 import { Button } from "@/components/ui/button";
 import { PearlButton } from "@/components/ui/pearl-button";
@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMe } from "@/components/use-me";
 import { useTx } from "@/components/use-tx";
 import { WalletGate } from "@/components/wallet-gate";
-import { calls, cardPath, isMock, publishedCard, revisedCard, textProblem, tidy, type Card, type Limits, type TierInput } from "@/lib/chain";
+import { calls, isMock, publishedCard, revisedCard, textProblem, tidy, type Card, type Limits, type TierInput } from "@/lib/chain";
 import { EXAMPLE_CARDS, type ExampleCard } from "@/lib/examples";
 import { gen, genText, toAtto } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -301,19 +301,11 @@ export function CardForm({ revising, limits, onDone }: { revising: Card | null; 
 
       <TxBlock tx={tx} label={revising ? `Revising ${revising.id}` : "Publishing the card"} />
       {made ? (
-        <div className="space-y-2 rounded-xl border border-keeps/40 bg-keeps/10 p-4 text-sm" role="status">
+        <div className="space-y-4 rounded-xl border border-keeps/40 bg-keeps/10 p-4 text-sm" role="status">
           <p className="font-medium">
-            {revising ? `${revising.id} is closed and replaced by ${made}.` : `Published as ${made}.`}
+            {revising ? `${revising.id} is closed and replaced by ${made}.` : `Published as ${made}. It is live and anybody can ask it for a price.`}
           </p>
-          <p className="text-foreground/85">
-            Next: nothing is needed from you. Anybody else can now ask {made} for a price, and booked orders will wait for you
-            under Orders.
-          </p>
-          <Button asChild variant="cool" size="sm">
-            <Link href={cardPath(made)}>
-              Open {made} <ArrowRight />
-            </Link>
-          </Button>
+          <MakerNextSteps card={made} />
         </div>
       ) : null}
     </div>
